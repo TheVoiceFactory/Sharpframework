@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Sharpframework.EntityModel.Implementation\Sharpframework.EntityModel.Implementation.csproj" />
+    <ProjectReference Include="..\..\Sharpframework.EntityModel\Sharpframework.EntityModel.csproj" />
+  </ItemGroup>
+
+</Project>

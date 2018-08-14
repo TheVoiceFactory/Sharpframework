@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RootNamespace>Sharpframework.EntityModel.Implementation..New</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sharpframework.EntityModel2\Sharpframework.EntityModel2.csproj" />
+    <ProjectReference Include="..\Sharpframework.Serialization.ValueDom\Sharpframework.Serialization.ValueDom.csproj" />
+  </ItemGroup>
+
+</Project>
