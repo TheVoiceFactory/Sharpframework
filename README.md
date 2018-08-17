@@ -24,6 +24,8 @@ What we want to:
   - this "documental" approach is nearer to real-world document workflow
   - considering the humanly understandable documents in first as the base of the model keep the analysis near to the real world
   - workflows and models can use implement a description language near to all the stakeholders
+  - can be solved the hassle to maintain ORM for relational storages
+  - can be reduced the impact of maintianing the data model keeping it strictly correspondent to OOP classes design
 - use of "events" or "facts" that describe something that has be appended in your model
   - limit or avoid complex services that implement workflows and transactions required by the business model 
   - less dependency from interdisciplinary knowledge of the business 
@@ -45,6 +47,14 @@ What we want to:
 - keep decoupled functional domains of the model 
   - every domain can have its specific describing language
   - every domain requires a specific model knowledge
+
+
+# A tool for every job
+    
+  - Reducing the data model maintaining cost
+  - Make our tool well suited to implement DDD
+    - Development of an easy to use Hierarchical document<->c# class hydration/dehydration
+    - [Serialization](src/Serialization.md)
 
 ## License
 Sharpframework is not licensed in any form.

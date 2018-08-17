@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 	ProjectSection(SolutionItems) = preProject
 		..\Guidelines.txt = ..\Guidelines.txt
 		..\README.md = ..\README.md
+		Serialization.md = Serialization.md
 	EndProjectSection
 EndProject
 Global
