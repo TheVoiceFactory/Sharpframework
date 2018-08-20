@@ -7,7 +7,7 @@ fall over and over in similar and repetitive bad patterns and habits.
 They are mostly  unaware of that due to progressive changes in nomenclature of already known concepts and because every technology or its declination brings something new or better shaped. 
 In most of the cases some experienced developers can identify elements and concepts already seen in other projects or that sometimes they have already developed by their self.
 At the end some of these elements prove their usefulness, sometimes are abandoned, sometimes just reshaped and represented.
-Our general impression is that every technology or architecture if we give enough time to developed enough to "solve everything" when is  chosen for its spread adoption introduces new problems in a sort of perverted cycle of already known old issues. 
+Our general impression is that if we develop enough some technology or architecture to "solve everything" or when we choose that for its spread adoption we introduce new problems in a sort of perverted cycle of already known old issues. 
 
 # Goals
 
