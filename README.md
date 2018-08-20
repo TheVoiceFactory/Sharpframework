@@ -5,8 +5,8 @@ An initial version of a smart framework for C# focused on a documental reactive 
 The experience growth in a large set of projects during the last 25 years makes evident that developers sometimes for laziness, sometimes for the appeal for glittered fashions or for  lack of historical perspective 
 fall over and over in similar and repetitive bad patterns and habits.
 They are mostly  unaware of that due to progressive changes in nomenclature of already known concepts and because every technology or its declination brings something new or better shaped. 
-In most of the cases some experienced developers  can identify elements or concepts that already seen in other projects with a different look or that sometimes they have already developed by their self.
-At the end some of these elements have proved their usefulness, sometimes are abandoned, sometimes just reshaped and represented.
+In most of the cases some experienced developers can identify elements and concepts already seen in other projects or that sometimes they have already developed by their self.
+At the end some of these elements prove their usefulness, sometimes are abandoned, sometimes just reshaped and represented.
 Our general impression is that every technology or architecture if we give enough time to developed enough to "solve everything" when is  chosen for its spread adoption introduces new problems in a sort of perverted cycle of already known old issues. 
 
 # Goals
