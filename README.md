@@ -2,14 +2,12 @@
 An initial version of a smart framework for C# focused on a documental reactive approach based on DDD basics
 
 # Premise
-The experience growth in a large set of projects during the last 25 years makes evident that often laziness, appeal 
-for glittered fashions and lack of historical perspective 
-lead to propose over and over similar bad patterns and habits.
-This happens mostly in an unaware way due to changes in new nomenclature of already known concepts and because every technology or its declination brings something new or better shaped. 
-In most of the cases experienced developers that have started with 8 bit assemblers to arrive today to new OOP languages in a span of 30 years can identify elements or concepts already seen or sometimes already developed by their self.
-Some of these elements have proved their usefulness, sometimes are abandoned, sometimes just reshaped and represented.
-Our general impression is that every technology or architecture conceived to solve a problem once it is developed enough to "solve everything" and it is chosen as is for its spread adoption it becomes a problem itself. 
-In a sort of perverted cycle of representation of already known old issues. 
+The experience growth in a large set of projects during the last 25 years makes evident that developers sometimes for laziness, sometimes for the appeal for glittered fashions or for  lack of historical perspective 
+fall over and over in similar and repetitive bad patterns and habits.
+They are mostly  unaware of that due to progressive changes in nomenclature of already known concepts and because every technology or its declination brings something new or better shaped. 
+In most of the cases some experienced developers  can identify elements or concepts that already seen in other projects with a different look or that sometimes they have already developed by their self.
+At the end some of these elements have proved their usefulness, sometimes are abandoned, sometimes just reshaped and represented.
+Our general impression is that every technology or architecture if we give enough time to developed enough to "solve everything" when is  chosen for its spread adoption introduces new problems in a sort of perverted cycle of already known old issues. 
 
 # Goals
 
