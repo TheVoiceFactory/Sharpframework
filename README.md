@@ -18,18 +18,18 @@ of business and industrial process, making a selection of what we consider of pr
 
 What we want to:
 - focus our effort to develop a precise and complete model of a real-world case, typically a business model or a workflow
-- description of data models as entities and aggregates as per the DDD practice
-  - this "documental" approach is nearer to real-world document workflow
-  - considering the humanly understandable documents in first as the base of the model keep the analysis near to the real world
-  - workflows and models can use implement a description language near to all the stakeholders
-  - can be solved the hassle to maintain ORM for relational storages
-  - can be reduced the impact of maintianing the data model keeping it strictly correspondent to OOP classes design
+- give simplified practices for the description of data models as entities and aggregates as per the DDD practice
+  - focusing on "documental" approach as it is nearer to real-world document workflow
+  - considering in first the humanly readeable documents of a process to keep the development process near to the real world
+  - workflows and models should implement in their high level implementation code a specific language near to all the stakeholders (ubiquitus language)
+  - recduce or avoid the hassle to maintain ORM for relational storages
+  - reduce maintianing cost of the data model and its storage keeping them strictly correspondent to OOP classes design
 - use of "events" or "facts" that describe something that has be appended in your model
   - limit or avoid complex services that implement workflows and transactions required by the business model 
   - less dependency from interdisciplinary knowledge of the business 
-  - better isolation of design erros to specific domain
+  - better isolation of possible design erros to their domains
   - every "actor" needs to know less of the whole picture
-  - design implicitly compatible  with reactive architecture ( as every "actor" need just to implement its "reaction" to something happens)
+  - design is implicitly compatible  with reactive architecture ( as every "actor" need just to implement its "reaction" to something happens)
 - reduce the number of lines written to implement the model
   - every line is a cost (direct and indirect)
   - every line is a potential failure point 
