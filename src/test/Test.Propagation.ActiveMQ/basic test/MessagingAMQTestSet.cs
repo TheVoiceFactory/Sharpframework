@@ -8,7 +8,7 @@ using Sharpframework.Propagation.Activemq;
 using Sharpframework.EntityModel;
 using Sharpframework.EntityModel.Implementation;
 
-namespace Test.MessagingAMQ
+namespace Test.Propagation.AMQ
 {
 
     public class MessagingAMQTestSet
