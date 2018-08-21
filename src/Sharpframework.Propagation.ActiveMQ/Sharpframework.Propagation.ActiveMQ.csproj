@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>Sharpframework.Infrastructure.Messaging.ActiveMQ</RootNamespace>
-    <AssemblyName>Sharpframework.Infrastructure.Messaging.ActiveMQ</AssemblyName>
+    <AssemblyName>Sharpframework.Propagation.ActiveMQ</AssemblyName>
     
   </PropertyGroup>
   <ItemGroup>
