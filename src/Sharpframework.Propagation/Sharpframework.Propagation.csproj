@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Activemq\RequestProcessor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Activemq\nlog.config" />
+    <None Remove="Activemq\packages.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sharpframework.Core\Sharpframework.Core.csproj" />
+    <ProjectReference Include="..\Sharpframework.EntityModel\Sharpframework.EntityModel.csproj" />
+  </ItemGroup>
+
+</Project>
