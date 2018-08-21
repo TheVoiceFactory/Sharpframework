@@ -31,7 +31,7 @@ namespace Test.MessagingAMQ
         }
 
         public interface IMyPayload
-            : IEntityContract
+           
         {
             string Nome { get; set; }
             string Cognome { get; set; }

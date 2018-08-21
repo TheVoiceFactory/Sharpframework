@@ -15,7 +15,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sharpframework.Core\Sharpframework.Core.csproj" />
-    <ProjectReference Include="..\Sharpframework.EntityModel\Sharpframework.EntityModel.csproj" />
+    <ProjectReference Include="..\Sharpframework.EntityModel2.Implementation\Sharpframework.EntityModel2.Implementation.csproj" />
+    <ProjectReference Include="..\Sharpframework.EntityModel2\Sharpframework.EntityModel2.csproj" />
   </ItemGroup>
 
 </Project>
