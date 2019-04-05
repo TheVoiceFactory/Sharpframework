@@ -43,8 +43,6 @@ namespace Sharpframework.Propagation.Facts
     public interface IFactProvider<FactType> where FactType : Fact { }
     public interface IFactSubscriber { void Subscribe(Fact fact); }
 
-    public interface IService { }
-
     namespace Events
     {
         public static class IFactConsumerExt
@@ -54,9 +52,14 @@ namespace Sharpframework.Propagation.Facts
         }
 
     }
-    public class FactBus : IFactSubscriber, IService
+    public class FactBus : IFactSubscriber//, IService
     {
         private object bus;
+
+        public IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
+
+        public IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
+
         public void Subscribe(Fact fact)
         {
 
@@ -73,16 +76,88 @@ namespace Sharpframework.Propagation.Facts
     }
     public interface IFactConsumer { }
 
+
     public interface IPlayer
     {
-        IReadOnlyList<IFact> EmittedFacts { get; }
+        IReadOnlyList<IFact> EmittedFacts { get; } //can be void
+        /// </summary>
         IReadOnlyList<IFact> ReactTo{ get; }
+        IReadOnlyList<IFactPublisher> Transports { get; }
     }
-    public class Entita:IFactConsumer, IPlayer 
+
+    public interface IFactPublisher : IPublisher<IFact> { }
+
+    public interface IPublisher<PublishedType>
+    {
+        void ImplPublish(PublishedType fact);
+    }
+
+    public interface ITransport
+    {
+        void Publish(IFact fact);
+    }
+
+    public abstract class PlayerBase : IPlayer
+    {
+        public abstract IReadOnlyList<IFact> EmittedFacts { get; }
+        public abstract IReadOnlyList<IFact> ReactTo { get; }
+        public abstract IReadOnlyList<IFactPublisher> Transports { get; }
+    }
+
+    public class BusPlayer : PlayerBase
+    {
+        public override IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
+
+        public override IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
+
+        public override IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
+    }
+
+    public class MSMQPlayer : PlayerBase
+    {
+        public override IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
+
+        public override IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
+
+        public override IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
+    }
+
+    public interface IEntityFactory { }
+    public class EntityFactory:IEntityFactory 
+    {
+        static IEntity Build() { return null; }
+    }
+
+    public static class StandardTransportExt
+    {
+         static void AddStandardTransport(this IEntityFactory factory) { }
+    }
+    //public class EnttityFactory:IPlyerFactory
+    //{
+
+
+    //}
+        
+    //public interface IPlyerFactory
+    //{
+
+    //}
+    public interface IEntityService : IService
+    {  IEnumerable<IEntity> Entities { get; } /* Placeholder: potrebbe non essere esposta */ }
+
+    //public interface IService { }
+
+    public interface IService : IPlayer { }
+
+    public interface IEntity:IFactConsumer, IPlayer 
+    { }
+    public interface IDocument : IEntity { }
+
+    public class Entity:IEntity
     {
         private FactBus bus;
     
-        public Entita(FactBus bus)
+        public Entity (FactBus bus)
         {
             this.bus = bus;
         }
@@ -90,6 +165,8 @@ namespace Sharpframework.Propagation.Facts
         public IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
 
         public IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
+
+        public IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
 
         public void Method1()
         {
