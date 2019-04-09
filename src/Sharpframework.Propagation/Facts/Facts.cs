@@ -8,20 +8,47 @@ namespace Sharpframework.Propagation.Facts
 {
     using Factes.Customers;
     using Factes.Invoices;
-    public interface IFact { }
-    public class Fact : IFact
+
+    public abstract class UniversalTimeStamp
     {
+        public abstract UniversalTimeStamp Generate();
     }
 
-    public class Dropped:Fact
-        {}
+    public interface IFact {
+        Fact ReactionTo { get; }
+        UniversalTimeStamp When { get; }
+
+
+    }
+
+    public abstract class Fact : IFact
+    {
+        public abstract Fact ReactionTo { get; }
+
+        public abstract UniversalTimeStamp When { get; }
+
+       
+
+    }
+
+    public class Dropped : Fact
+    {
+        public override Fact ReactionTo => throw new NotImplementedException();
+
+        public override UniversalTimeStamp When => throw new NotImplementedException();
+    }
     public  class Facts { }
 
     namespace Factes.Customers
     {
         public static class FactsExtA
         {
-            public class DroppedAFact : Fact { }
+            public class DroppedAFact : Fact
+            {
+                public override Fact ReactionTo => throw new NotImplementedException();
+
+                public override UniversalTimeStamp When => throw new NotImplementedException();
+            }
             public static DroppedAFact Dropped(this Facts f)
             {
                 return new DroppedAFact();
@@ -32,7 +59,12 @@ namespace Sharpframework.Propagation.Facts
     {
         public static class FactsExtB
         {
-            public class DroppedBFact : Fact { }
+            public class DroppedBFact : Fact
+            {
+                public override Fact ReactionTo => throw new NotImplementedException();
+
+                public override UniversalTimeStamp When => throw new NotImplementedException();
+            }
             public static DroppedBFact DroppedB(this Facts f)
             {
                 return new DroppedBFact();
@@ -76,13 +108,16 @@ namespace Sharpframework.Propagation.Facts
     }
     public interface IFactConsumer { }
 
-
+    public interface IPlayGround
+    {
+        IReadOnlyList<IFactPublisher> Transports { get; }
+    }
     public interface IPlayer
     {
-        IReadOnlyList<IFact> EmittedFacts { get; } //can be void
+        IReadOnlyList<IFact> AccomplishedFacts { get; } //can be void
         /// </summary>
         IReadOnlyList<IFact> ReactTo{ get; }
-        IReadOnlyList<IFactPublisher> Transports { get; }
+        IPlayGround Playground { get; }
     }
 
     public interface IFactPublisher : IPublisher<IFact> { }
@@ -99,27 +134,23 @@ namespace Sharpframework.Propagation.Facts
 
     public abstract class PlayerBase : IPlayer
     {
-        public abstract IReadOnlyList<IFact> EmittedFacts { get; }
         public abstract IReadOnlyList<IFact> ReactTo { get; }
-        public abstract IReadOnlyList<IFactPublisher> Transports { get; }
+       
+        public IPlayGround Playground => throw new NotImplementedException();
+
+        public IReadOnlyList<IFact> AccomplishedFacts => throw new NotImplementedException();
     }
 
-    public class BusPlayer : PlayerBase
+    public class BusPlayer : IPlayGround
     {
-        public override IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
-
-        public override IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
-
-        public override IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
+        public IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
     }
 
-    public class MSMQPlayer : PlayerBase
+    public class MSMQPlayer : IPlayGround
     {
-        public override IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
+        
 
-        public override IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
-
-        public override IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
+        public  IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
     }
 
     public interface IEntityFactory { }
@@ -162,11 +193,15 @@ namespace Sharpframework.Propagation.Facts
             this.bus = bus;
         }
 
-        public IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
+        public IReadOnlyList<IFact> AccomplishedFacts => throw new NotImplementedException();
 
         public IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
 
         public IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
+
+        public IPlayGround Playground => throw new NotImplementedException();
+
+        
 
         public void Method1()
         {
@@ -178,8 +213,18 @@ namespace Sharpframework.Propagation.Facts
         
     }
 
-    public class Fact1 : Fact { }
-    public class Fact2 : Fact { }
+    public class Fact1 : Fact
+    {
+        public override Fact ReactionTo => throw new NotImplementedException();
+
+        public override UniversalTimeStamp When => throw new NotImplementedException();
+    }
+    public class Fact2 : Fact
+    {
+        public override Fact ReactionTo => throw new NotImplementedException();
+
+        public override UniversalTimeStamp When => throw new NotImplementedException();
+    }
 
 
     public class Service
