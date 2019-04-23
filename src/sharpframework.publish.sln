@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28729.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharpframework.Core", "Sharpframework.Core\Sharpframework.Core.csproj", "{67EA1D43-D91F-4B12-94C2-A56282DBC44D}"
 EndProject
@@ -25,11 +25,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.EntityModel2", "test\T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Processes.EntityModel2", "test\Test.Processes.EntityModel2\Test.Processes.EntityModel2.csproj", "{E0261727-B168-40B4-80E1-D4F61D270591}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharpframework.Propagation", "Sharpframework.Propagation\Sharpframework.Propagation.csproj", "{6D169F46-AED8-4512-B7F6-35666A1485A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharpframework.Propagation", "Sharpframework.Propagation\Sharpframework.Propagation.csproj", "{6D169F46-AED8-4512-B7F6-35666A1485A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharpframework.Propagation.ActiveMQ", "Sharpframework.Propagation.ActiveMQ\Sharpframework.Propagation.ActiveMQ.csproj", "{5735206C-CE80-4F79-A975-889AF202C8B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Messaging.ActiveMQ", "test\Test.Propagation.ActiveMQ\Test.Messaging.ActiveMQ.csproj", "{A61AE95F-7546-464D-A4BE-283BB04F6D07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.DependencyInjection", "Test.DependencyInjection\Test.DependencyInjection.csproj", "{DD0DD5E0-8286-411E-BBF3-831871B21180}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +95,10 @@ Global
 		{A61AE95F-7546-464D-A4BE-283BB04F6D07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A61AE95F-7546-464D-A4BE-283BB04F6D07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A61AE95F-7546-464D-A4BE-283BB04F6D07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD0DD5E0-8286-411E-BBF3-831871B21180}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD0DD5E0-8286-411E-BBF3-831871B21180}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD0DD5E0-8286-411E-BBF3-831871B21180}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD0DD5E0-8286-411E-BBF3-831871B21180}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
