@@ -10,7 +10,7 @@ namespace Test.DependencyInjection
 {
     class Program
     {
-        public interface IMyService
+        public interface IMyService 
         {
             String StringDecorator ( String target );
         }
