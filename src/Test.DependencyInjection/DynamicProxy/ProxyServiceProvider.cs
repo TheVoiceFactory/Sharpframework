@@ -78,14 +78,15 @@ namespace Test.DependencyInjection.DynamicProxy
 
             implType = serviceDescr.ImplementationType;
 
-            ProxyGenerator roslynProxyGen = new ProxyGenerator ();
+            //ProxyGenerator roslynProxyGen = new ProxyGenerator ();
+            TestProxy roslynProxyGen = new TestProxy ();
 
             Dictionary<String, List<ClassDeclarationSyntax>> nsClasses  = new Dictionary<String, List<ClassDeclarationSyntax>> ();
             List<ClassDeclarationSyntax> classes;
             ClassDeclarationSyntax      classDeclStx = null;
             DistinctList<Assembly>      referredAssemblies = new DistinctList<Assembly> ();
 
-            //referredAssemblies.Add ( typeof ( System.Runtime.MemoryFailPoint ).Assembly );
+            referredAssemblies.Add ( typeof ( TestProxy ).Assembly );
 
             foreach ( RegisteredServices.ServiceDescriptor sd
                         in ImplServices.Where ( ( sd ) => sd.ProxyAssemblySp == null ) )

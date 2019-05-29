@@ -1,0 +1,64 @@
+﻿public abstract class Result
+{
+  abstract Boolean Success { get; }
+}
+
+public class FamigliaRettili : Result
+{
+  public String Moglie { get; set; }
+  public String Marito { get; set; }
+  public String Figlio { get; set; }
+  
+  public Boolean IsACoccodrillo { get; }
+  
+  public Boolean IsACoccodrilloMoglie { get; }
+  
+  public Boolean Failure { get; }
+  
+  public override Boolean Success get => !Failure;
+}
+
+[ Interceptor ( typeof MessageInterceptor.Sender ) ]
+public class Pippo
+{
+  public Boolean Pluto ( params )
+  { return true;}
+
+  public FamigliaRettili Paperino ( params )
+  { return ... }
+}
+
+public class PippoProxy
+{
+  private Pippo __proxiedObject;
+  
+  public Boolean Pluto ( params )
+  {
+    Boolean retVal = __proxiedObject.Pluto ( params );
+    MessageInterceptor.Sender ( retVal, params );
+    return retVal;
+  }
+
+  public FamigliaRettili Paperino ( params )
+  {
+    FamigliaRettili retVal = __proxiedObject.Parerino ( params );
+    MessageInterceptor.Sender ( retVal.Success, params );
+    return retVal;
+  }
+}
+
+public static class MessageInterceptor
+{
+  public static void Sender ( Boolean result, params )
+  {
+    if ( result ) <SendMessage> else <raise exception>:
+  }
+  public static void Sender ( Result result, params )
+  {
+    if ( result.Success ) <SendMessage> else <raise exception>:
+  }
+  
+  public static void Standard ( delegate, retval/exception, params )
+  {
+  }
+}
