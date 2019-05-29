@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Sharpframework.Core;
+using Sharpframework.Roslyn.CSharp;
+
 
 namespace Test.DependencyInjection.DynamicProxy
 {
@@ -75,11 +78,15 @@ namespace Test.DependencyInjection.DynamicProxy
 
             implType = serviceDescr.ImplementationType;
 
+            ProxyGenerator roslynProxyGen = new ProxyGenerator ();
+
             Dictionary<String, List<ClassDeclarationSyntax>> nsClasses  = new Dictionary<String, List<ClassDeclarationSyntax>> ();
             List<ClassDeclarationSyntax> classes;
             ClassDeclarationSyntax      classDeclStx = null;
+            DistinctList<Assembly>      referredAssemblies = new DistinctList<Assembly> ();
 
-            //var k  = ImplServices.Where ( ( sd ) => sd.ImplementationType.Assembly == serviceDescr.ImplementationType.Assembly && sd.ProxyAssemblySp == null );
+            //referredAssemblies.Add ( typeof ( System.Runtime.MemoryFailPoint ).Assembly );
+
             foreach ( RegisteredServices.ServiceDescriptor sd
                         in ImplServices.Where ( ( sd ) => sd.ProxyAssemblySp == null ) )
             {
@@ -87,7 +94,9 @@ namespace Test.DependencyInjection.DynamicProxy
                     nsClasses.Add ( sd.ImplementationType.Namespace,
                                     classes = new List<ClassDeclarationSyntax> () );
 
-                classDeclStx = _BuildProxyClass ( sd.ImplementationType, sd.InterfaceType );
+                //classDeclStx = _BuildProxyClass ( sd.ImplementationType, sd.InterfaceType );
+                classDeclStx = roslynProxyGen.Generate (
+                    sd.InterfaceType, sd.ImplementationType, referredAssemblies );
 
                 if ( classDeclStx == null )
                 {
@@ -121,9 +130,58 @@ namespace Test.DependencyInjection.DynamicProxy
 
             Console.WriteLine ( cuStx.NormalizeWhitespace ().ToFullString () );
 
+            Compilation compilation = CreateLibraryCompilation( "InMemoryAssembly", false, referredAssemblies )
+                                            .AddSyntaxTrees ( cuStx.SyntaxTree );
+
+            var stream = new System.IO.MemoryStream();
+            var emitResult = compilation.Emit ( stream );
+
+            Assembly compiledAssembly = Assembly.Load ( stream.ToArray () );
+
+            foreach ( Type t in compiledAssembly.ExportedTypes )
+                if ( t.Name == implType.Name + "Proxy" )
+                {
+                    IPippo p = Activator.CreateInstance ( t ) as IPippo;
+
+                    Int32 yy = p.Pluto ( "pappa" );
+                }
+
             return implType;
         }
 
+        public Compilation CreateLibraryCompilation (
+            String                  assemblyName,
+            Boolean                 enableOptimisations,
+            IEnumerable<Assembly>   referredAssemblies  )
+        {
+            IEnumerable<MetadataReference> _References ()
+            {
+                foreach ( Assembly assembly in referredAssemblies )
+                    yield return MetadataReference.CreateFromFile ( assembly.Location );
+
+                var assemblyPath = System.IO.Path.GetDirectoryName(typeof(object).Assembly.Location);
+
+                /* 
+                    * Adding some necessary .NET assemblies
+                    * These assemblies couldn't be loaded correctly via the same construction as above,
+                    * in specific the System.Runtime.
+                    */
+                yield return MetadataReference.CreateFromFile ( System.IO.Path.Combine ( assemblyPath, "mscorlib.dll" ) );
+                yield return MetadataReference.CreateFromFile ( System.IO.Path.Combine ( assemblyPath, "System.dll" ) );
+                yield return MetadataReference.CreateFromFile ( System.IO.Path.Combine ( assemblyPath, "System.Core.dll" ) );
+                yield return MetadataReference.CreateFromFile ( System.IO.Path.Combine ( assemblyPath, "System.Runtime.dll" ) );
+                //returnList.Add ( new MetadataFileReference ( Path.Combine ( assemblyPath, "System.Runtime.dll" ) ) );
+
+                yield break;
+            }
+
+            var options = new CSharpCompilationOptions(
+              OutputKind.DynamicallyLinkedLibrary,
+              optimizationLevel: enableOptimisations ? OptimizationLevel.Release : OptimizationLevel.Debug,
+              allowUnsafe: true);
+
+            return CSharpCompilation.Create ( assemblyName, options: options, references: _References () );
+        }
 
         protected RegisteredServices ImplServices
         {

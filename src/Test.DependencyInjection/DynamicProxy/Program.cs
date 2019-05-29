@@ -17,7 +17,7 @@ namespace Test.DependencyInjection.DynamicProxy
 
         public int Pluto ( string str )
         {
-            throw new NotImplementedException ();
+            return str == null ? 0 : str.Length;
         }
     }
     class Program
