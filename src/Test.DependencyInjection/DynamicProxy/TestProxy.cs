@@ -33,7 +33,7 @@ namespace Test.DependencyInjection.DynamicProxy
         {
             yield return SyntaxFactory.ExpressionStatement (
                             SyntaxHelper.InvocationExpression (
-                                "Test.DependencyInjection.DynamicProxy.ExternalMethods", "StandardProlog" ) );
+                                "StandardProlog", "Test", "DependencyInjection", "DynamicProxy", "ExternalMethods" ) );
 
             foreach ( StatementSyntax stmt in base.ImplMethodStatementSet ( methInfo ) )
                 yield return stmt;

@@ -229,7 +229,7 @@ namespace Sharpframework.Roslyn.CSharp
 
         public static InvocationExpressionSyntax InvocationExpression (
             String right, params String [] left )
-                => InvocationExpression ( right, left, null );
+                => InvocationExpression ( right, null, left );
 
         public static InvocationExpressionSyntax InvocationExpression (
             String right, IEnumerable<String> arguments, params String [] left )
