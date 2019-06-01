@@ -127,22 +127,18 @@ namespace Test.DependencyInjection.DynamicProxy
             nsDeclStx = nsDeclStx.AddUsings ( SyntaxFactory.UsingDirective ( SyntaxFactory.ParseName ( implType.Namespace ) ) );
 
             cuStx = SyntaxFactory.CompilationUnit ()
-                        .WithMembers ( new SyntaxList<MemberDeclarationSyntax> ( nsDeclStx ) );
+                        .WithMembers ( new SyntaxList<MemberDeclarationSyntax> ( nsDeclStx ) )
+                        .NormalizeWhitespace ();
 
-            Console.WriteLine ( cuStx.NormalizeWhitespace ().ToFullString () );
+            Console.WriteLine ( cuStx.ToFullString () );
 
-            Compilation compilation = CreateLibraryCompilation( "InMemoryAssembly", false, referredAssemblies )
-                                            .AddSyntaxTrees ( cuStx.SyntaxTree );
-
-            var stream = new System.IO.MemoryStream();
-            var emitResult = compilation.Emit ( stream );
-
-            Assembly compiledAssembly = Assembly.Load ( stream.ToArray () );
+            Assembly compiledAssembly = CompilationHelper.CompileLibrary (
+                                                "InMemoryAssembly", referredAssemblies, cuStx.SyntaxTree );
 
             foreach ( Type t in compiledAssembly.ExportedTypes )
                 if ( t.Name == implType.Name + "Proxy" )
                 {
-                    IPippo p = Activator.CreateInstance ( t ) as IPippo;
+                    IPippo p = compiledAssembly.CreateInstance ( t.FullName ) as IPippo;
 
                     Int32 yy = p.Pluto ( "pappa" );
                 }
