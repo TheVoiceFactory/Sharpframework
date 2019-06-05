@@ -7,12 +7,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Sharpframework.Core;
+using Sharpframework.Roslyn.CSharp;
 
 
-namespace Sharpframework.Roslyn.CSharp
+namespace Sharpframework.Roslyn.DynamicProxy
 {
     public class ProxyGenerator
-        //: GeneratorBase
     {
         protected const String ProxiedObjectFieldName = "__proxiedObject";
 
@@ -60,6 +60,23 @@ namespace Sharpframework.Roslyn.CSharp
                 yield break;
             }
 
+            IEnumerable<Tuple<Type, String>> _CopyConstructorParameterSet ( Type implType, String origObjPrm )
+            {
+                yield return Tuple.Create ( implType, origObjPrm );
+                yield break;
+            }
+
+            IEnumerable<StatementSyntax> _CopyConstructorStatementSet ( String origObjPrm )
+            {
+                yield return SyntaxFactory.ExpressionStatement (
+                                SyntaxFactory.AssignmentExpression (
+                                    SyntaxKind.SimpleAssignmentExpression,
+                                    SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
+                                    SyntaxFactory.IdentifierName ( origObjPrm ) ) );
+
+                yield break;
+            }
+
             IEnumerable<Tuple<Type, String>> _SpConstructorParameterSet ()
             {
                 yield return Tuple.Create ( typeof ( IServiceProvider ), "sp" );
@@ -99,6 +116,11 @@ namespace Sharpframework.Roslyn.CSharp
                                         ImplProxyClassName,
                                         _ConstructorStatementSet ( argListStx ),
                                         null ) );
+
+            membersDeclStx.Add ( SyntaxHelper.PublicConstructorDeclaration (
+                                        ImplProxyClassName,
+                                        _CopyConstructorStatementSet ( "origObj" ),
+                                        _CopyConstructorParameterSet ( contractType, "origObj" ) ) );
 
             if ( ImplObjectType.GetConstructor ( typeof ( IServiceProvider ) ) == null )
                 argListStx = SyntaxHelper.ArgumentList ();

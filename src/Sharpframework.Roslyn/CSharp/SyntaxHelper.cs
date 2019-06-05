@@ -458,6 +458,11 @@ namespace Sharpframework.Roslyn.CSharp
                             .SeparatedList () );
 
         public static SyntaxList<SyntaxItemType> SyntaxList<SyntaxItemType> (
+            params SyntaxItemType [] targets )
+                where SyntaxItemType : SyntaxNode
+                    => SyntaxFactory.List ( targets );
+
+        public static SyntaxList<SyntaxItemType> SyntaxList<SyntaxItemType> (
             this IEnumerable<SyntaxItemType> target )
                 where SyntaxItemType : SyntaxNode
                     => SyntaxFactory.List<SyntaxItemType> ( target );
