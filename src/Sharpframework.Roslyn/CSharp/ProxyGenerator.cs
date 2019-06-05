@@ -14,27 +14,36 @@ namespace Sharpframework.Roslyn.CSharp
     public class ProxyGenerator
         //: GeneratorBase
     {
-        protected static readonly String ProxiedObjectFieldName;
+        protected const String ProxiedObjectFieldName = "__proxiedObject";
 
-        static ProxyGenerator ()
-        {
-            ProxiedObjectFieldName = "__proxiedObject";
-        }
 
         public ClassDeclarationSyntax Generate<ContractType, ImplementationType> (
                 ContractType            contractType,
                 ImplementationType      implementationType,
                 DistinctList<Assembly>  referredAssemblies )
-            where ImplementationType : Type, ContractType
-            where ContractType : Type
-                => Generate ( contractType, implementationType, referredAssemblies, null );
+            where ImplementationType    : Type, ContractType
+            where ContractType          : Type
+                => ImplGenerate ( contractType, implementationType, referredAssemblies, null );
+
         public ClassDeclarationSyntax Generate<ContractType, ImplementationType> (
                 ContractType            contractType,
                 ImplementationType      implementationType,
                 DistinctList<Assembly>  referredAssemblies,
                 String                  proxyClassName )
-            where ImplementationType : Type, ContractType
-            where ContractType : Type
+            where ImplementationType    : Type, ContractType
+            where ContractType          : Type
+                => ImplGenerate ( contractType,
+                        implementationType, referredAssemblies, proxyClassName );
+
+
+
+        protected virtual ClassDeclarationSyntax ImplGenerate<ContractType, ImplementationType> (
+                ContractType            contractType,
+                ImplementationType      implementationType,
+                DistinctList<Assembly>  referredAssemblies,
+                String                  proxyClassName )
+            where ImplementationType    : Type, ContractType
+            where ContractType          : Type
         {
             IEnumerable<StatementSyntax> _ConstructorStatementSet ( ArgumentListSyntax arguments )
             {
@@ -83,7 +92,7 @@ namespace Sharpframework.Roslyn.CSharp
 
             membersDeclStx = new List<MemberDeclarationSyntax> ();
 
-            membersDeclStx.Add ( SyntaxHelper.PublicFieldDeclaration (
+            membersDeclStx.Add ( SyntaxHelper.PrivateFieldDeclaration (
                                     ImplObjectContract, ProxiedObjectFieldName ) );
 
             membersDeclStx.Add ( SyntaxHelper.PublicConstructorDeclaration (

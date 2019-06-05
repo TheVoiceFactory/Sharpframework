@@ -223,9 +223,40 @@ namespace Sharpframework.Roslyn.CSharp
             return default ( SyntaxTokenList );
         }
 
-        public static IEnumerable<IdentifierNameSyntax> IdentifierSet (
+        public static NameSyntax IdentifierName ( String source )
+            => IdentifierName ( source, "." );
+        public static NameSyntax IdentifierName ( params String [] sources )
+        {
+            IEnumerable<String> _Tokens ()
+            {
+                foreach ( String source in sources )
+                    foreach ( String token in source.Split (
+                                                '.', StringSplitOptions.RemoveEmptyEntries ) )
+                        yield return token;
+
+                yield break;
+            }
+
+
+            NameSyntax  retVal = null;
+
+            using ( IEnumerator<String> tokenEnum = _Tokens ().GetEnumerator () )
+            {
+                if ( !tokenEnum.MoveNext () ) return retVal;
+
+                retVal = SyntaxFactory.IdentifierName ( tokenEnum.Current );
+
+                while ( tokenEnum.MoveNext () )
+                    retVal = SyntaxFactory.QualifiedName (
+                                        retVal,
+                                        SyntaxFactory.IdentifierName ( tokenEnum.Current ) );
+            }
+
+            return retVal;
+        }
+        public static IEnumerable<NameSyntax> IdentifierSet (
             IEnumerable<String> parameters )
-                => SyntaxSet ( SyntaxFactory.IdentifierName, parameters );
+                => SyntaxSet ( IdentifierName, parameters );
 
         public static InvocationExpressionSyntax InvocationExpression (
             String right, params String [] left )
@@ -251,9 +282,8 @@ namespace Sharpframework.Roslyn.CSharp
                 if ( !paramEnum.MoveNext () )
                     return SyntaxFactory.InvocationExpression ( rightStx );
 
-                qualNameStx = SyntaxFactory.IdentifierName ( paramEnum.Current );
+                qualNameStx = IdentifierName ( paramEnum.Current );
 
-                //for ( Byte k = 1 ; k < left.Length ; k++ )
                 while ( paramEnum.MoveNext () )
                     qualNameStx = SyntaxFactory.QualifiedName (
                                         qualNameStx,
@@ -284,7 +314,10 @@ namespace Sharpframework.Roslyn.CSharp
                 yield break;
             }
 
-            TypeSyntax returnTypeStx = SyntaxFactory.ParseTypeName ( methInfo.ReturnType.FullName );
+            TypeSyntax returnTypeStx = methInfo.ReturnType == typeof ( void )
+                            ? SyntaxFactory.PredefinedType (
+                                    SyntaxFactory.Token ( SyntaxKind.VoidKeyword ) )
+                            : SyntaxFactory.ParseTypeName ( methInfo.ReturnType.FullName );
 
             return SyntaxFactory.MethodDeclaration ( returnTypeStx, methInfo.Name )
                         .WithBody ( SyntaxFactory.Block ( statementSet ) )
@@ -351,6 +384,20 @@ namespace Sharpframework.Roslyn.CSharp
                         SyntaxFactory.Identifier ( propInfo.Name ),
                         SyntaxFactory.AccessorList ( AccessorDeclStx ().SyntaxList () ) );
         }
+        public static FieldDeclarationSyntax PrivateFieldDeclaration (
+            Type fieldType, params String [] fieldsNames )
+                => SyntaxFactory.FieldDeclaration (
+                        EmptySyntaxList<AttributeListSyntax> (),
+                        PrivateModifier,
+                        VariableDeclaration ( fieldType, fieldsNames ) );
+
+        public static FieldDeclarationSyntax ProtectedFieldDeclaration (
+            Type fieldType, params String [] fieldsNames )
+                => SyntaxFactory.FieldDeclaration (
+                        EmptySyntaxList<AttributeListSyntax> (),
+                        ProtectedModifier,
+                        VariableDeclaration ( fieldType, fieldsNames ) );
+
         public static ConstructorDeclarationSyntax PublicConstructorDeclaration (
             String                          className,
             IEnumerable<StatementSyntax>    bodyStatementSet,
@@ -364,7 +411,7 @@ namespace Sharpframework.Roslyn.CSharp
                         EmptySyntaxList<AttributeListSyntax> (),
                         PublicModifier,
                         VariableDeclaration ( fieldType, fieldsNames ) );
-                    
+
         public static MethodDeclarationSyntax PublicMethodDeclaration (
             MethodInfo                  methInfo,
             params StatementSyntax []   statementSet )
@@ -385,6 +432,10 @@ namespace Sharpframework.Roslyn.CSharp
             params ParamType [] parameters )
                 where SyntaxType : Microsoft.CodeAnalysis.SyntaxNode
                     => SyntaxFactory.SeparatedList<SyntaxType> ( InputConvertDlg ( parameters ) );
+
+        public static LiteralExpressionSyntax StringLiteralExpression ( String srcStr )
+            => SyntaxFactory.LiteralExpression (    SyntaxKind.StringLiteralExpression,
+                                                    SyntaxFactory.Literal ( srcStr ) );
 
         public static IEnumerable<SyntaxItemType> SyntaxSet<SyntaxItemType, InputItemType> (
             Func<InputItemType, SyntaxItemType> StxItemGeneratorDlg,

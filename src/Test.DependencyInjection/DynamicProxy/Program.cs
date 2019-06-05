@@ -2,18 +2,32 @@
 using System.Collections.Generic;
 using System.Text;
 
+using Sharpframework.Roslyn.DynamicProxy;
+
+
 namespace Test.DependencyInjection.DynamicProxy
 {
+    [EpilogInterceptor ( typeof ( ExternalMethods ), nameof (ExternalMethods.Epilog )) ]
+    [PrologInterceptor ( typeof ( ExternalMethods ), nameof (ExternalMethods.Prolog )) ]
     public interface IPippo
     {
+        void Paperino ( Int32 num, String str );
+
         Int32 Pluto ( String str );
+
         String Description { get; set; }
     }
+
     public class Pippo : IPippo
     {
         public Pippo () { }
         public Pippo ( IServiceProvider sp ) { }
-        public string Description { get => throw new NotImplementedException (); set => throw new NotImplementedException (); }
+        public String Description { get; set; }
+
+        public void Paperino ( Int32 num, String str )
+        {
+            Console.WriteLine ( "Called method Pippo.Paperino (...)" );
+        }
 
         public int Pluto ( string str )
         {

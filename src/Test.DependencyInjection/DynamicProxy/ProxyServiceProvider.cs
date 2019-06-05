@@ -87,6 +87,7 @@ namespace Test.DependencyInjection.DynamicProxy
             DistinctList<Assembly>      referredAssemblies = new DistinctList<Assembly> ();
 
             referredAssemblies.Add ( typeof ( TestProxy ).Assembly );
+            referredAssemblies.Add ( typeof ( Sharpframework.Roslyn.DynamicProxy.MemberType ).Assembly );
 
             foreach ( RegisteredServices.ServiceDescriptor sd
                         in ImplServices.Where ( ( sd ) => sd.ProxyAssemblySp == null ) )
@@ -141,6 +142,7 @@ namespace Test.DependencyInjection.DynamicProxy
                     IPippo p = compiledAssembly.CreateInstance ( t.FullName ) as IPippo;
 
                     Int32 yy = p.Pluto ( "pappa" );
+                    p.Paperino ( 14, "ciccia" );
                 }
 
             return implType;
