@@ -8,6 +8,14 @@ namespace Sharpframework.Core
 {
     public static class Extensions
     {
+        private static MethodInfo [] __emptyMethodInfo;
+
+        static Extensions ()
+        {
+            __emptyMethodInfo = null;
+        }
+
+
         public static void CopyPropertyValues(object source, object destination)
         {
             var destProperties = destination.GetType().GetProperties().Where(prop => prop.CanWrite);
@@ -32,6 +40,13 @@ namespace Sharpframework.Core
         public static void CopyValuesFrom(this object source, object destination)
         {
             CopyPropertyValues(source, destination);
+        }
+
+        public static MethodInfo [] Empty ( this MethodInfo [] target )
+        {
+            if ( __emptyMethodInfo == null ) __emptyMethodInfo = new MethodInfo [0];
+
+            return __emptyMethodInfo;
         }
 
         public static PropertyDescriptorCollection GetAllInterfaceProperties ( this Type interfaceType )
@@ -62,6 +77,9 @@ namespace Sharpframework.Core
             return new PropertyDescriptorCollection ( pdl.Values.ToArray () );
         } // End of GetAllInterfaceProperties (...)
 
+
+        public static ConstructorInfo GetConstructor ( this Type target, params Type [] arguments )
+            => target == null ? null : target.GetConstructor ( arguments );
         public static PropertyInfo[] GetPublicProperties(this Type type)
         {
             if (type.GetTypeInfo().IsInterface)
@@ -99,6 +117,45 @@ namespace Sharpframework.Core
 
             return type.GetProperties(BindingFlags.FlattenHierarchy
                 | BindingFlags.Public | BindingFlags.Instance);
+        }
+
+        public static MethodInfo [] RemovePropertiesAccessors ( this MethodInfo [] target
+            , IEnumerable<PropertyInfo> properties )
+        {
+            void RemovePropertiesAccessors ( IList<MethodInfo> methods, MethodInfo accessor )
+            {
+                if ( methods.Contains ( accessor ) ) methods.Remove ( accessor);
+            }
+
+            List<MethodInfo> methods        = new List<MethodInfo> ();
+            List<MethodInfo> specialNames   = null;
+
+            if ( target == null ) return target.Empty ();
+
+            foreach ( MethodInfo mi in target )
+                if ( mi.MemberType != MemberTypes.Method )
+                    continue;
+                else if ( mi.IsSpecialName )
+                    if ( specialNames == null )
+                        (specialNames = new List<MethodInfo> ()).Add ( mi );
+                    else
+                        specialNames.Add ( mi );
+                else
+                    methods.Add ( mi );
+
+            if ( specialNames == null ) return target;
+
+            if ( properties == null ) properties = target [0].DeclaringType.GetProperties ();
+
+            foreach ( PropertyInfo pi in properties )
+            {
+                RemovePropertiesAccessors ( specialNames, pi.GetMethod );
+                RemovePropertiesAccessors ( specialNames, pi.SetMethod );
+            }
+
+            if ( specialNames.Count > 0 ) methods.AddRange ( specialNames );
+
+            return methods.ToArray ();
         }
 
         public static void TryDispose(ref Object target)
