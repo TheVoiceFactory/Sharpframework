@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Sharpframework.Core;
 using Sharpframework.Roslyn.CSharp;
+using Sharpframework.Roslyn.DynamicProxy;
 
 
 namespace Test.DependencyInjection.DynamicProxy
@@ -79,15 +80,15 @@ namespace Test.DependencyInjection.DynamicProxy
             implType = serviceDescr.ImplementationType;
 
             //ProxyGenerator roslynProxyGen = new ProxyGenerator ();
-            TestProxy roslynProxyGen = new TestProxy ();
+            PrologEpilogProxyGenerator roslynProxyGen = new PrologEpilogProxyGenerator ();
 
             Dictionary<String, List<ClassDeclarationSyntax>> nsClasses  = new Dictionary<String, List<ClassDeclarationSyntax>> ();
             List<ClassDeclarationSyntax> classes;
             ClassDeclarationSyntax      classDeclStx = null;
             DistinctList<Assembly>      referredAssemblies = new DistinctList<Assembly> ();
 
-            referredAssemblies.Add ( typeof ( TestProxy ).Assembly );
-            referredAssemblies.Add ( typeof ( Sharpframework.Roslyn.DynamicProxy.MemberType ).Assembly );
+            //referredAssemblies.Add ( typeof ( TestProxy ).Assembly );
+            //referredAssemblies.Add ( typeof ( Sharpframework.Roslyn.DynamicProxy.MemberType ).Assembly );
 
             foreach ( RegisteredServices.ServiceDescriptor sd
                         in ImplServices.Where ( ( sd ) => sd.ProxyAssemblySp == null ) )
@@ -120,15 +121,15 @@ namespace Test.DependencyInjection.DynamicProxy
             NameSyntax                  nameStx;
             NamespaceDeclarationSyntax  nsDeclStx;
 
-            nameStx = SyntaxFactory.IdentifierName ( implType.Namespace + ".Proxies" ); //"Sharpframework.DynamicProxy" );
+            nameStx = SyntaxHelper.IdentifierName ( implType.Namespace, "Proxies" );
 
             nsDeclStx = SyntaxFactory.NamespaceDeclaration ( nameStx )
-                        .WithMembers ( new SyntaxList<MemberDeclarationSyntax> ( classDeclStx ) );
+                        .WithMembers ( SyntaxHelper.SyntaxList ( (MemberDeclarationSyntax) classDeclStx ) );
 
             nsDeclStx = nsDeclStx.AddUsings ( SyntaxFactory.UsingDirective ( SyntaxFactory.ParseName ( implType.Namespace ) ) );
 
             cuStx = SyntaxFactory.CompilationUnit ()
-                        .WithMembers ( new SyntaxList<MemberDeclarationSyntax> ( nsDeclStx ) )
+                        .WithMembers ( SyntaxHelper.SyntaxList ( (MemberDeclarationSyntax) nsDeclStx ) )
                         .NormalizeWhitespace ();
 
             Console.WriteLine ( cuStx.ToFullString () );

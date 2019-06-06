@@ -5,35 +5,13 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Sharpframework.Roslyn.DynamicProxy;
-using Sharpframework.Roslyn.CSharp;
 using Sharpframework.Core;
+using Sharpframework.Roslyn.CSharp;
 
-namespace Test.DependencyInjection.DynamicProxy
+
+namespace Sharpframework.Roslyn.DynamicProxy
 {
-    public static class ExternalMethods
-    {
-        public static void Epilog (
-            MemberType          memberType,
-            String              memberName,
-            Object              instance,
-            Object              retVal,
-            params Object []    parameters )
-        {
-            Console.WriteLine ( "Epilog Invoked" );
-        }
-
-        public static void Prolog (
-            MemberType          memberType,
-            String              memberName,
-            Object              instance,
-            params Object []    parameters )
-        {
-            Console.WriteLine ( "Prolog Invoked" );
-        }
-    }
-
-    public class TestProxy
+    public class PrologEpilogProxyGenerator
         : ProxyGenerator
     {
         protected const String ReturnValueVariableName = "retVal";
@@ -45,7 +23,7 @@ namespace Test.DependencyInjection.DynamicProxy
             DistinctList<Assembly>  referredAssemblies,
             String                  proxyClassName )
         {
-            referredAssemblies.Add ( typeof ( MemberTypes ).Assembly );
+            referredAssemblies.Add ( typeof ( MemberType ).Assembly );
 
             return base.ImplGenerate ( contractType,
                             implementationType, referredAssemblies, proxyClassName );
