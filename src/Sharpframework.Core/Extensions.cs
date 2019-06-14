@@ -49,6 +49,34 @@ namespace Sharpframework.Core
             return __emptyMethodInfo;
         }
 
+        public static IEnumerable<PropertyInfo> GetAllInterfacePropertiesInfo ( this Type interfaceType )
+        {
+            if ( interfaceType      == null ) return null;
+            if ( !interfaceType.IsInterface ) return null;
+
+            List<Type>                              childInterfaces = null;
+            IEnumerable<PropertyInfo>               locPil          = null;
+            Dictionary<String, PropertyInfo>        pil             = null;
+            Type []                                 tmp             = null;
+
+            if ( (tmp = interfaceType.GetInterfaces ()) != null )
+                childInterfaces = new List<Type> ( tmp );
+
+            childInterfaces.Add ( interfaceType );
+            pil = new Dictionary<String, PropertyInfo> ();
+
+            foreach ( Type curInterface in childInterfaces )
+                if ( curInterface.IsAssignableFrom ( interfaceType ) )
+                {
+                    locPil = curInterface.GetProperties ();
+
+                    foreach ( PropertyInfo pi in locPil )
+                        if ( !pil.ContainsKey ( pi.Name ) ) pil.Add ( pi.Name, pi );
+                }
+
+            return pil.Values;
+        } // End of GetAllInterfaceProperties (...)
+
         public static PropertyDescriptorCollection GetAllInterfaceProperties ( this Type interfaceType )
         {
             if ( interfaceType      == null ) return null;
@@ -117,6 +145,14 @@ namespace Sharpframework.Core
 
             return type.GetProperties(BindingFlags.FlattenHierarchy
                 | BindingFlags.Public | BindingFlags.Instance);
+        }
+
+        public static MethodInfo [] RemovePropertiesAccessors ( this MethodInfo [] target )
+        {
+            if ( target == null ) return null;
+            if ( target.Length < 1 ) return target;
+
+            return target.RemovePropertiesAccessors ( target [ 0 ].DeclaringType.GetProperties () );
         }
 
         public static MethodInfo [] RemovePropertiesAccessors ( this MethodInfo [] target

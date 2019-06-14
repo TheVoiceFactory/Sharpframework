@@ -14,7 +14,11 @@ namespace Sharpframework.Roslyn.DynamicProxy
 {
     public class ProxyGenerator
     {
-        protected const String ProxiedObjectFieldName = "__proxiedObject";
+        protected const String ProxiedObjectFieldName       = "__proxiedObject";
+        protected const String SpConstructorParameterName   = "sp";
+
+        private List<MemberDeclarationSyntax>   __membersDecl;
+        private DistinctList<Assembly>          __referredAssemblies;
 
 
         public ClassDeclarationSyntax Generate<ContractType, ImplementationType> (
@@ -23,7 +27,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                 DistinctList<Assembly>  referredAssemblies )
             where ImplementationType    : Type, ContractType
             where ContractType          : Type
-                => ImplGenerate ( contractType, implementationType, referredAssemblies, null );
+                => ImplGenerate ( contractType, implementationType, __referredAssemblies = referredAssemblies, null );
 
         public ClassDeclarationSyntax Generate<ContractType, ImplementationType> (
                 ContractType            contractType,
@@ -33,10 +37,41 @@ namespace Sharpframework.Roslyn.DynamicProxy
             where ImplementationType    : Type, ContractType
             where ContractType          : Type
                 => ImplGenerate ( contractType,
-                        implementationType, referredAssemblies, proxyClassName );
+                        implementationType, __referredAssemblies = referredAssemblies, proxyClassName );
 
 
 
+        protected virtual void ImplAddMember ( MemberDeclarationSyntax member )
+        {
+            __membersDecl.Add ( member );
+        }
+
+        protected void AddReferredAssembly ( Type type )
+            => AddReferredAssembly ( type == null ? (Assembly) null : type.Assembly );
+        protected void AddReferredAssembly ( Assembly assembly )
+        { if ( assembly != null ) __referredAssemblies.Add ( assembly ); }
+        protected virtual IEnumerable<StatementSyntax> ImplCopyConstructorStatementSet (
+            String origObjPrm )
+        {
+            yield return SyntaxFactory.ExpressionStatement (
+                            SyntaxFactory.AssignmentExpression (
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
+                                SyntaxFactory.IdentifierName ( origObjPrm ) ) );
+
+            yield break;
+        }
+
+        protected virtual IEnumerable<StatementSyntax> ImplDefaultConstructorStatementSet ()
+            => _ConstructorStatementSet ( SyntaxHelper.ArgumentList () );
+
+        protected virtual IEnumerable<FieldDeclarationSyntax> ImplFieldsDeclarations ()
+        {
+            yield return SyntaxHelper.PrivateFieldDeclaration (
+                            ImplObjectContract, ProxiedObjectFieldName );
+
+            yield break;
+        }
         protected virtual ClassDeclarationSyntax ImplGenerate<ContractType, ImplementationType> (
                 ContractType            contractType,
                 ImplementationType      implementationType,
@@ -45,41 +80,17 @@ namespace Sharpframework.Roslyn.DynamicProxy
             where ImplementationType    : Type, ContractType
             where ContractType          : Type
         {
-            IEnumerable<StatementSyntax> _ConstructorStatementSet ( ArgumentListSyntax arguments )
-            {
-                yield return SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.AssignmentExpression (
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
-                                    SyntaxFactory.ObjectCreationExpression (
-                                        SyntaxFactory.Token ( SyntaxKind.NewKeyword ),
-                                        SyntaxFactory.ParseTypeName ( ImplObjectType.Name ),
-                                        arguments,
-                                        null ) ) );
-
-                yield break;
-            }
-
-            IEnumerable<Tuple<Type, String>> _CopyConstructorParameterSet ( Type implType, String origObjPrm )
+            IEnumerable<Tuple<Type, String>> _CopyConstructorParameterSet (
+                Type implType, String origObjPrm )
             {
                 yield return Tuple.Create ( implType, origObjPrm );
                 yield break;
             }
 
-            IEnumerable<StatementSyntax> _CopyConstructorStatementSet ( String origObjPrm )
-            {
-                yield return SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.AssignmentExpression (
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
-                                    SyntaxFactory.IdentifierName ( origObjPrm ) ) );
-
-                yield break;
-            }
-
             IEnumerable<Tuple<Type, String>> _SpConstructorParameterSet ()
             {
-                yield return Tuple.Create ( typeof ( IServiceProvider ), "sp" );
+                yield return Tuple.Create (
+                                typeof ( IServiceProvider ), SpConstructorParameterName );
                 yield break;
             }
 
@@ -97,9 +108,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                             String.Format ( "The type specified in ImplementationType ({0}), must be a Class.",
                                             ImplObjectType.Name ) );
 
-            ArgumentListSyntax              argListStx = SyntaxHelper.ArgumentList ();
-            List<MemberDeclarationSyntax>   membersDeclStx;
-            PropertyInfo []                 properties;
+            IEnumerable<PropertyInfo> properties;
 
             referredAssemblies.Add ( contractType.Assembly );
             referredAssemblies.Add ( implementationType.Assembly );
@@ -107,39 +116,34 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
             ImplProxyClassName = ImplInitProxyClassName ( proxyClassName );
 
-            membersDeclStx = new List<MemberDeclarationSyntax> ();
+            __membersDecl = new List<MemberDeclarationSyntax> ();
 
-            membersDeclStx.Add ( SyntaxHelper.PrivateFieldDeclaration (
-                                    ImplObjectContract, ProxiedObjectFieldName ) );
+            foreach ( FieldDeclarationSyntax fldDeclStx in ImplFieldsDeclarations () )
+                ImplAddMember ( fldDeclStx );
 
-            membersDeclStx.Add ( SyntaxHelper.PublicConstructorDeclaration (
-                                        ImplProxyClassName,
-                                        _ConstructorStatementSet ( argListStx ),
-                                        null ) );
+            ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
+                                ImplProxyClassName,
+                                ImplDefaultConstructorStatementSet (),
+                                null ) );
 
-            membersDeclStx.Add ( SyntaxHelper.PublicConstructorDeclaration (
-                                        ImplProxyClassName,
-                                        _CopyConstructorStatementSet ( "origObj" ),
-                                        _CopyConstructorParameterSet ( contractType, "origObj" ) ) );
+            ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
+                                ImplProxyClassName,
+                                ImplCopyConstructorStatementSet ( "origObj" ),
+                                _CopyConstructorParameterSet ( contractType, "origObj" ) ) );
 
-            if ( ImplObjectType.GetConstructor ( typeof ( IServiceProvider ) ) == null )
-                argListStx = SyntaxHelper.ArgumentList ();
-            else
-                argListStx = SyntaxHelper.ArgumentList ( "sp" );
-
-            membersDeclStx.Add ( SyntaxHelper.PublicConstructorDeclaration (
-                                        ImplProxyClassName,
-                                        _ConstructorStatementSet ( argListStx ),
-                                        _SpConstructorParameterSet () ) );
+            ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
+                                ImplProxyClassName,
+                                ImplSpConstructorStatementSet (),
+                                _SpConstructorParameterSet () ) );
 
 
-            properties = contractType.GetProperties ();
+            properties = contractType.GetAllInterfacePropertiesInfo ();
 
             foreach ( MethodInfo methInfo in contractType.GetMethods ()
                                                 .RemovePropertiesAccessors ( properties ) )
             {
-                membersDeclStx.Add ( SyntaxHelper.PublicMethodDeclaration (
-                                            methInfo, ImplMethodStatementSet ( methInfo ) ) );
+                ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
+                                    methInfo, ImplMethodStatementSet ( methInfo ) ) );
 
                 foreach ( ParameterInfo pi in methInfo.GetParameters () )
                     referredAssemblies.Add ( pi.ParameterType.Assembly );
@@ -149,7 +153,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
             foreach ( PropertyInfo propInfo in properties )
             {
-                membersDeclStx.Add (
+                ImplAddMember (
                     SyntaxHelper.PublicPropertyDeclaration (
                         propInfo,
                         propInfo.CanRead ? ImplGetAccessorStatementSet ( propInfo ) : null,
@@ -161,7 +165,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
             return SyntaxFactory.ClassDeclaration ( ImplProxyClassName )
                         .WithModifiers ( SyntaxHelper.PublicModifier )
                         .WithBaseList ( SyntaxHelper.BaseList ( true, ImplObjectContract ) )
-                        .WithMembers ( membersDeclStx.SyntaxList () );
+                        .WithMembers ( __membersDecl.SyntaxList () );
         }
 
         protected virtual IEnumerable<StatementSyntax> ImplGetAccessorStatementSet (
@@ -217,6 +221,28 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                         SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
                                         SyntaxFactory.IdentifierName ( propInfo.Name ) ),
                                     SyntaxFactory.IdentifierName ( "value" ) ) );
+
+            yield break;
+        }
+
+
+        protected virtual IEnumerable<StatementSyntax> ImplSpConstructorStatementSet ()
+            => _ConstructorStatementSet ( SyntaxHelper.ArgumentList (
+                    ImplObjectType.GetConstructor ( typeof ( IServiceProvider ) ) == null
+                        ? null : "sp" ) );
+
+        private IEnumerable<StatementSyntax> _ConstructorStatementSet (
+            ArgumentListSyntax arguments )
+        {
+            yield return SyntaxFactory.ExpressionStatement (
+                            SyntaxFactory.AssignmentExpression (
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
+                                SyntaxFactory.ObjectCreationExpression (
+                                    SyntaxFactory.Token ( SyntaxKind.NewKeyword ),
+                                    SyntaxFactory.ParseTypeName ( ImplObjectType.Name ),
+                                    arguments,
+                                    null ) ) );
 
             yield break;
         }
