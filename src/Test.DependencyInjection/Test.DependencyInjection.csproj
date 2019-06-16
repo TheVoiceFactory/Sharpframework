@@ -3,7 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <StartupObject>Test.DependencyInjection.DynamicProxy.Program</StartupObject>
+    <StartupObject>Test.DependencyInjection.FactProxy.FactProxyProgram</StartupObject>
+    <ApplicationIcon />
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Sharpframework.EntityModel.Implementation\Sharpframework.EntityModel.Implementation.csproj" />
+    <ProjectReference Include="..\Sharpframework.EntityModel\Sharpframework.EntityModel.csproj" />
     <ProjectReference Include="..\Sharpframework.Roslyn\Sharpframework.Roslyn.csproj" />
   </ItemGroup>
 

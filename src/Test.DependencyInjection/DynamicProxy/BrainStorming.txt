@@ -62,3 +62,114 @@ public static class MessageInterceptor
   {
   }
 }
+
+------------------------------------------------------------------
+
+public class MyEntity
+	: Entity
+	, IMyEntity
+{
+	public Guid Id { get; } // Inherited from Entity...
+
+	public String Name { get; private set; }
+
+	public String Surname { get; private set; }
+
+	public Boolean ChangeName ( String newName )
+	{ Name = newName; }
+
+	public Boolean ChangeSurname ( String newSurname )
+	{ Surname = newSurname; }
+}
+
+// Aggiungo gli attributi
+public class MyEntity : IMyEntity
+{
+	public Guid Id { get; }
+
+	public String Name { get; private set; }
+
+	public String Surname { get; private set; }
+
+	[ EmitInvokedVerbFact ]
+	public Boolean ChangeName ( String newName )
+	{ Name = newName; }
+
+	[ EmitInvokedVerbFact ]
+	public Boolean ChangeSurname ( String newSurname )
+	{ Surname = newSurname; }
+}
+
+// In conseguenza degli attributi apposti, desidero che Roslyn generi il seguente proxy:
+public class MyEntityProxy : IMyEntity
+{
+	public class InvokedChangeNameFact : InvokedVerbFact
+	{
+		public readonly String NewName;
+
+		public InvokedChangeNameFact ( String newName ) { NewName = newName; }
+	}
+
+	public class InvokedChangeSurnameFact : InvokedVerbFact
+	{
+		public readonly String NewSurname;
+
+		public InvokedChangeSurnameFact ( String newSurname ) { NewSurname = newSurname; }
+	}
+
+
+	private IMyEntity __proxiedObject;
+
+
+	// Omissis (Constructors...)
+
+
+	public static IMyEntity Allocate ( IServiceProvider sp )
+		=> new MyEntityProxy ( sp );
+
+
+	public Guid Id { get => __proxiedObject.Id; }
+
+	public String Name { get => __proxiedObject.Name; }
+
+	public String Surname { get => __proxiedObject.Surname; }
+
+	public Boolean ChangeName ( String newName )
+	{
+		if ( !__proxiedObject.ChangeName ( newName ) ) return false;
+		
+		FactManager.Acquire ( new InvokedChangeNameFact ( this ); )
+
+		return true;
+	}
+
+	public Boolean ChangeName ( InvokedChangeNameFact changeNameFact )
+		=> return ChangeName ( changeNameFact.NewName )
+
+	public Boolean ChangeSurname ( String newSurname )
+	{
+		if ( !__proxiedObject.ChangeSurname ( newSurname ) ) return false;
+
+		FactManager.Acquire ( new InvokedChangeSurnameFact ( this ); )
+
+		return true;
+	}
+
+	public Boolean ChangeSurname ( InvokedChangeSurnameFact changeSurnameFact )
+		=> return ChangeSurname ( changeSurnameFact.NewSurname )
+}
+
+// Dove
+public class Fact
+{
+	//...
+}
+
+public class GuidFact : Fact
+{
+	public Guid Id { get; }
+}
+
+public class InvokedVerbFact : GuidFact
+{
+}
