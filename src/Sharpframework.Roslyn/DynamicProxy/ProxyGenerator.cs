@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,17 +16,23 @@ namespace Sharpframework.Roslyn.DynamicProxy
         protected const String ProxiedObjectFieldName       = "__proxiedObject";
         protected const String SpConstructorParameterName   = "sp";
 
+        private DistinctList<MethodInfo>        __contractMethods;
+        private DistinctList<PropertyInfo>      __contractProperties;
         private List<MemberDeclarationSyntax>   __membersDecl;
         private DistinctList<Assembly>          __referredAssemblies;
 
 
         public ClassDeclarationSyntax Generate<ContractType, ImplementationType> (
-                ContractType            contractType,
-                ImplementationType      implementationType,
-                DistinctList<Assembly>  referredAssemblies )
+                ContractType contractType,
+                ImplementationType implementationType,
+                DistinctList<Assembly> referredAssemblies )
             where ImplementationType    : Type, ContractType
             where ContractType          : Type
-                => ImplGenerate ( contractType, implementationType, __referredAssemblies = referredAssemblies, null );
+        {
+            __referredAssemblies = referredAssemblies;
+            ImplClear ();
+            return ImplGenerate ( contractType, implementationType, referredAssemblies, null );
+        }
 
         public ClassDeclarationSyntax Generate<ContractType, ImplementationType> (
                 ContractType            contractType,
@@ -36,8 +41,50 @@ namespace Sharpframework.Roslyn.DynamicProxy
                 String                  proxyClassName )
             where ImplementationType    : Type, ContractType
             where ContractType          : Type
-                => ImplGenerate ( contractType,
-                        implementationType, __referredAssemblies = referredAssemblies, proxyClassName );
+        {
+            __referredAssemblies = referredAssemblies;
+            ImplClear ();
+            return ImplGenerate ( contractType,
+                        implementationType, referredAssemblies, proxyClassName );
+        }
+
+
+
+        protected IReadOnlyCollection<MethodInfo> ImplContractMethods
+        {
+            get
+            {
+                if ( __contractMethods == null )
+                    __contractMethods = new DistinctList<MethodInfo> ();
+
+                if ( __contractMethods.Count < 1 )
+                    __contractMethods.AddRange ( ImplObjectContract.GetMethods ()
+                                .RemovePropertiesAccessors ( ImplContractProperties ) );
+
+                return __contractMethods;
+            }
+        }
+
+        protected IReadOnlyCollection<PropertyInfo> ImplContractProperties
+        {
+            get
+            {
+                if ( __contractProperties == null )
+                    __contractProperties = new DistinctList<PropertyInfo> ();
+
+                if ( __contractProperties.Count < 1 )
+                    __contractProperties.AddRange (
+                        ImplObjectContract.GetAllInterfacePropertiesInfo () );
+
+                return __contractProperties;
+            }
+        }
+
+        protected Type ImplObjectType { get; set; }
+
+        protected Type ImplObjectContract { get; set; }
+
+        protected String ImplProxyClassName { get; set; }
 
 
 
@@ -46,10 +93,19 @@ namespace Sharpframework.Roslyn.DynamicProxy
             __membersDecl.Add ( member );
         }
 
-        protected void AddReferredAssembly ( Type type )
-            => AddReferredAssembly ( type == null ? (Assembly) null : type.Assembly );
-        protected void AddReferredAssembly ( Assembly assembly )
+        protected void ImplAddReferredAssembly ( Type type )
+            => ImplAddReferredAssembly ( type == null ? (Assembly) null : type.Assembly );
+        
+        protected void ImplAddReferredAssembly ( Assembly assembly )
         { if ( assembly != null ) __referredAssemblies.Add ( assembly ); }
+
+        protected virtual void ImplClear ()
+        {
+            if ( __contractMethods      != null ) __contractMethods.Clear ();
+            if ( __contractProperties   != null ) __contractProperties.Clear ();
+            if ( __membersDecl          != null ) __membersDecl.Clear ();
+        }
+
         protected virtual IEnumerable<StatementSyntax> ImplCopyConstructorStatementSet (
             String origObjPrm )
         {
@@ -72,6 +128,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
             yield break;
         }
+
         protected virtual ClassDeclarationSyntax ImplGenerate<ContractType, ImplementationType> (
                 ContractType            contractType,
                 ImplementationType      implementationType,
@@ -108,11 +165,9 @@ namespace Sharpframework.Roslyn.DynamicProxy
                             String.Format ( "The type specified in ImplementationType ({0}), must be a Class.",
                                             ImplObjectType.Name ) );
 
-            IEnumerable<PropertyInfo> properties;
-
-            referredAssemblies.Add ( contractType.Assembly );
-            referredAssemblies.Add ( implementationType.Assembly );
-            referredAssemblies.Add ( typeof ( IServiceProvider ).Assembly );
+            ImplAddReferredAssembly ( contractType );
+            ImplAddReferredAssembly ( implementationType );
+            ImplAddReferredAssembly ( typeof ( IServiceProvider ) );
 
             ImplProxyClassName = ImplInitProxyClassName ( proxyClassName );
 
@@ -137,21 +192,18 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                 _SpConstructorParameterSet () ) );
 
 
-            properties = contractType.GetAllInterfacePropertiesInfo ();
-
-            foreach ( MethodInfo methInfo in contractType.GetMethods ()
-                                                .RemovePropertiesAccessors ( properties ) )
+            foreach ( MethodInfo methInfo in ImplContractMethods )
             {
                 ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
                                     methInfo, ImplMethodStatementSet ( methInfo ) ) );
 
                 foreach ( ParameterInfo pi in methInfo.GetParameters () )
-                    referredAssemblies.Add ( pi.ParameterType.Assembly );
+                    ImplAddReferredAssembly ( pi.ParameterType );
 
-                referredAssemblies.Add ( methInfo.ReturnType.Assembly );
+                ImplAddReferredAssembly ( methInfo.ReturnType );
             }
 
-            foreach ( PropertyInfo propInfo in properties )
+            foreach ( PropertyInfo propInfo in ImplContractProperties )
             {
                 ImplAddMember (
                     SyntaxHelper.PublicPropertyDeclaration (
@@ -159,7 +211,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                         propInfo.CanRead ? ImplGetAccessorStatementSet ( propInfo ) : null,
                         propInfo.CanWrite ? ImplSetAccessorStatementSet ( propInfo ) : null ) );
 
-                referredAssemblies.Add ( propInfo.PropertyType.Assembly );
+                ImplAddReferredAssembly ( propInfo.PropertyType );
             }
 
             return SyntaxFactory.ClassDeclaration ( ImplProxyClassName )
@@ -205,12 +257,6 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
             yield break;
         }
-        protected Type ImplObjectType { get; set; }
-
-        protected Type ImplObjectContract { get; set; }
-
-        protected String ImplProxyClassName { get; set; }
-
         protected virtual IEnumerable<StatementSyntax> ImplSetAccessorStatementSet (
             PropertyInfo propInfo )
         {

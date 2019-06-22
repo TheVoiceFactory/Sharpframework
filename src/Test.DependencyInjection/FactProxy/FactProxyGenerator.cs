@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Sharpframework.Core;
 using Sharpframework.EntityModel;
-using Sharpframework.EntityModel.Implementation;
+//using Sharpframework.EntityModel.Implementation;
 using Sharpframework.Roslyn.CSharp;
 using Sharpframework.Roslyn.DynamicProxy;
 using Sharpframework.Propagation.Facts;
@@ -25,11 +25,27 @@ namespace Test.DependencyInjection.FactProxy
         protected const String PublisherFieldName       = "__publisher";
         protected const String ReturnValueVariableName  = "retVal";
 
-        private Boolean __begin;
+        private Boolean                 __begin;
+        private DistinctList<String>    __factProviderVerbs;
 
 
         protected static String ImplGetExecVerbFactName ( String verbName )
             => "ExecVerb" + verbName + "Fact";
+
+
+        protected virtual IReadOnlyCollection<String> ImplFactProviderVerbs
+        {
+            get
+            {
+                if ( __factProviderVerbs == null )
+                    __factProviderVerbs = new DistinctList<String> ();
+
+
+                return __factProviderVerbs;
+            }
+        }
+
+
         protected override void ImplAddMember ( MemberDeclarationSyntax member )
         {
             if ( __begin )
@@ -39,6 +55,13 @@ namespace Test.DependencyInjection.FactProxy
             base.ImplAddMember ( member );
         }
 
+        protected override void ImplClear ()
+        {
+            __begin = true;
+
+            base.ImplClear ();
+        }
+
         protected override IEnumerable<FieldDeclarationSyntax> ImplFieldsDeclarations ()
         {
             foreach ( FieldDeclarationSyntax fldDeclStx in base.ImplFieldsDeclarations () )
@@ -46,21 +69,10 @@ namespace Test.DependencyInjection.FactProxy
 
             Type fldType;
 
-            AddReferredAssembly ( fldType = typeof ( IFactPublisher ) );
+            ImplAddReferredAssembly ( fldType = typeof ( IFactPublisher ) );
             yield return SyntaxHelper.PrivateFieldDeclaration ( fldType, PublisherFieldName );
 
             yield break;
-        }
-
-        protected override ClassDeclarationSyntax ImplGenerate<ContractType, ImplementationType> (
-            ContractType            contractType,
-            ImplementationType      implementationType,
-            DistinctList<Assembly>  referredAssemblies,
-            String                  proxyClassName )
-        {
-            __begin = true;
-
-            return base.ImplGenerate ( contractType, implementationType, referredAssemblies, proxyClassName );
         }
 
         protected override IEnumerable<StatementSyntax> ImplMethodStatementSet ( MethodInfo methInfo )
@@ -109,6 +121,7 @@ namespace Test.DependencyInjection.FactProxy
                                     null );
             ArgumentSyntax argStx = SyntaxFactory.Argument ( factCreationStx );
 
+            // if ( retVal && __publisher != null ) __publisher.Publish (...)
             yield return SyntaxFactory.IfStatement (
                             SyntaxFactory.BinaryExpression (
                                 SyntaxKind.LogicalAndExpression,
@@ -185,13 +198,13 @@ namespace Test.DependencyInjection.FactProxy
 
                     if ( uidOnHead )
                     {
-                        AddReferredAssembly ( typeof ( IUid ) );
+                        ImplAddReferredAssembly ( typeof ( IUid ) );
                         yield return Tuple.Create ( typeof ( IUid ), FactUidParameterName );
                     }
 
                     foreach ( ParameterInfo paramInfo in methInfo.GetParameters () )
                     {
-                        AddReferredAssembly ( paramInfo.ParameterType );
+                        ImplAddReferredAssembly ( paramInfo.ParameterType );
                         yield return Tuple.Create ( paramInfo.ParameterType, paramInfo.Name );
                     }
 
@@ -243,7 +256,7 @@ namespace Test.DependencyInjection.FactProxy
                                 ? typeof ( ExecEntityVerbFact<> )
                                 : typeof ( ExecVerbFact<> );
 
-                    AddReferredAssembly ( baseFactType );
+                    ImplAddReferredAssembly ( baseFactType );
 
                     yield return SyntaxFactory.SimpleBaseType (
                                     SyntaxHelper.Type ( baseFactType, ImplObjectContract ) );
@@ -355,9 +368,6 @@ namespace Test.DependencyInjection.FactProxy
                     {
                         yield return SyntaxFactory.ExpressionStatement ( invkExprStx );
                         yield return SyntaxHelper.ReturnTrue;
-                        //yield return SyntaxFactory.ReturnStatement (
-                        //                SyntaxFactory.LiteralExpression (
-                        //                    SyntaxKind.TrueLiteralExpression ) );
                     }
 
                     yield break;
