@@ -6,11 +6,11 @@ namespace Sharpframework.Propagation.Facts
 {
     public interface IFactConsumer
     {
-        Boolean Consume ( IFact fact );
+        void Consume ( IFact fact );
     }
     public interface IFactConsumer<FactType>
         where FactType : IFact
     {
-        Boolean Consume ( FactType fact );
+        void Consume ( FactType fact );
     }
 }

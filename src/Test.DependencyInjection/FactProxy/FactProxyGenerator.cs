@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -19,11 +20,13 @@ namespace Test.DependencyInjection.FactProxy
     public class FactProxyGenerator
         : ProxyGenerator
     {
+        protected const String DispatcherFieldName      = "__dispatcher";
         protected const String FactTargetParameterName  = "target";
         protected const String FactUidFieldName         = "Uid";
         protected const String FactUidParameterName     = "uid";
         protected const String PublisherFieldName       = "__publisher";
         protected const String ReturnValueVariableName  = "retVal";
+        protected const String SenderParameterName      = "sender";
 
         private Boolean                 __begin;
         private DistinctList<String>    __factProviderVerbs;
@@ -40,11 +43,75 @@ namespace Test.DependencyInjection.FactProxy
                 if ( __factProviderVerbs == null )
                     __factProviderVerbs = new DistinctList<String> ();
 
+                if ( __factProviderVerbs.Count < 1 )
+                    foreach ( MethodInfo mi in ImplContractMethods )
+                        if ( mi.GetCustomAttribute<ProvideExecVerbFactAttribute> ( true ) != null )
+                            __factProviderVerbs.Add ( mi.Name );
 
                 return __factProviderVerbs;
             }
         }
 
+        private NameSyntax _FactConsumerInterfaceStx ( String factVerb )
+        {
+            TypeSyntax  factType;
+            SyntaxToken factConsumer;
+            NameSyntax  nspcStx;
+
+            nspcStx = SyntaxHelper.IdentifierName (
+                                typeof ( IFactConsumer<> ).Namespace );
+
+            factConsumer = SyntaxFactory.Identifier (
+                                typeof ( IFactConsumer<> ).Name.Split ( '`' ) [0] );
+
+            factType = SyntaxFactory.QualifiedName (
+                SyntaxFactory.IdentifierName ( ImplProxyClassName ),
+                SyntaxFactory.IdentifierName (
+                    ImplGetExecVerbFactName ( factVerb ) ) );
+
+            return SyntaxFactory.QualifiedName (
+                    nspcStx,
+                    SyntaxFactory.GenericName (
+                        factConsumer,
+                        SyntaxFactory.TypeArgumentList ( SyntaxFactory.List<TypeSyntax> ().Add ( factType ).SeparatedList () ) ) );
+        }
+
+        protected override IEnumerable<BaseTypeSyntax> ImplProxyBaseTypes
+        {
+            get
+            {
+                foreach ( BaseTypeSyntax baseType in base.ImplProxyBaseTypes )
+                    yield return baseType;
+
+                ImplAddReferredAssembly ( typeof ( IFactConsumer<> ) );
+
+                foreach ( String factProviderVerb in ImplFactProviderVerbs )
+                    yield return SyntaxFactory.SimpleBaseType (
+                                        _FactConsumerInterfaceStx ( factProviderVerb ) );
+
+                yield break;
+            }
+        }
+
+
+        protected override void ImplAddConstructors ()
+        {
+            IEnumerable<Tuple<Type, String>> _FullConstructorParameterSet ()
+            {
+                yield return Tuple.Create ( ImplObjectContract, "origObj" );
+                yield return Tuple.Create (
+                                typeof ( IServiceProvider ), SpConstructorParameterName );
+                yield break;
+            }
+
+
+            base.ImplAddConstructors ();
+
+            ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
+                                ImplProxyClassName,
+                                ImplFullConstructorStatementSet (),
+                                _FullConstructorParameterSet () ) );
+        }
 
         protected override void ImplAddMember ( MemberDeclarationSyntax member )
         {
@@ -59,6 +126,8 @@ namespace Test.DependencyInjection.FactProxy
         {
             __begin = true;
 
+            if ( __factProviderVerbs != null ) __factProviderVerbs.Clear ();
+
             base.ImplClear ();
         }
 
@@ -72,6 +141,9 @@ namespace Test.DependencyInjection.FactProxy
             ImplAddReferredAssembly ( fldType = typeof ( IFactPublisher ) );
             yield return SyntaxHelper.PrivateFieldDeclaration ( fldType, PublisherFieldName );
 
+            ImplAddReferredAssembly ( fldType = typeof ( IFactDispatcher ) );
+            yield return SyntaxHelper.PrivateFieldDeclaration ( fldType, DispatcherFieldName );
+
             yield break;
         }
 
@@ -82,13 +154,18 @@ namespace Test.DependencyInjection.FactProxy
                 foreach ( ParameterInfo pi in methInfo.GetParameters () )
                     yield return pi.Name;
 
-
                 yield break;
             }
 
             IEnumerable<ArgumentSyntax> _FactArguments ()
             {
-                yield return SyntaxFactory.Argument ( SyntaxFactory.ThisExpression () );
+                //yield return SyntaxFactory.Argument ( SyntaxFactory.ThisExpression () );
+                //yield return SyntaxFactory.Argument ( SyntaxFactory.ThisExpression () );
+                yield return SyntaxFactory.Argument (
+                                SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ) );
+
+                yield return SyntaxFactory.Argument (
+                                SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ) );
 
                 foreach ( String methArg in _Arguments () )
                     yield return SyntaxFactory.Argument ( SyntaxFactory.IdentifierName ( methArg ) );
@@ -143,9 +220,9 @@ namespace Test.DependencyInjection.FactProxy
             yield break;
         }
 
-        protected override IEnumerable<StatementSyntax> ImplSpConstructorStatementSet ()
+        protected virtual IEnumerable<StatementSyntax> ImplFullConstructorStatementSet ()
         {
-            foreach ( StatementSyntax stmtStx in base.ImplSpConstructorStatementSet () )
+            foreach ( StatementSyntax stmtStx in base.ImplCopyConstructorStatementSet (  "origObj" ) )
                 yield return stmtStx;
 
             yield return SyntaxFactory.IfStatement (
@@ -155,6 +232,7 @@ namespace Test.DependencyInjection.FactProxy
                                 SyntaxHelper.NullLiteralExpression ),
                             SyntaxFactory.ReturnStatement () );
 
+            // __publisher = sp.GetService ( typeof ( IFactPublisher ) ) as IFactPublisher
             yield return SyntaxFactory.ExpressionStatement (
                             SyntaxFactory.AssignmentExpression (
                                 SyntaxKind.SimpleAssignmentExpression,
@@ -170,7 +248,124 @@ namespace Test.DependencyInjection.FactProxy
                                                     SyntaxFactory.TypeOfExpression (
                                                         SyntaxHelper.Type (
                                                             typeof ( IFactPublisher ) ) ) ) ) ),
-                                    SyntaxHelper.Type ( typeof (IFactPublisher) ) ) ) );
+                                    SyntaxHelper.Type ( typeof ( IFactPublisher ) ) ) ) );
+
+            // __dispatcher = sp.GetService ( typeof ( IFactDispatcher ) ) as IFactDispatcher
+            yield return SyntaxFactory.ExpressionStatement (
+                            SyntaxFactory.AssignmentExpression (
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxHelper.IdentifierName ( DispatcherFieldName ),
+                                SyntaxFactory.BinaryExpression (
+                                    SyntaxKind.AsExpression,
+                                    SyntaxFactory.InvocationExpression (
+                                        SyntaxHelper.IdentifierName (
+                                            SpConstructorParameterName,
+                                            nameof ( IServiceProvider.GetService ) ),
+                                            SyntaxHelper.ArgumentList (
+                                                SyntaxFactory.Argument (
+                                                    SyntaxFactory.TypeOfExpression (
+                                                        SyntaxHelper.Type (
+                                                            typeof ( IFactDispatcher ) ) ) ) ) ),
+                                    SyntaxHelper.Type ( typeof ( IFactDispatcher ) ) ) ) );
+
+            yield return SyntaxFactory.IfStatement (
+                            SyntaxFactory.BinaryExpression (
+                                SyntaxKind.EqualsExpression,
+                                SyntaxHelper.IdentifierName ( DispatcherFieldName ),
+                                SyntaxHelper.NullLiteralExpression ),
+                            SyntaxFactory.ReturnStatement () );
+
+            foreach ( String factVerb in ImplFactProviderVerbs )
+                yield return SyntaxFactory.ExpressionStatement (
+                                    SyntaxFactory.InvocationExpression (
+                                        SyntaxFactory.QualifiedName (
+                                            SyntaxFactory.IdentifierName ( DispatcherFieldName ),
+                                            SyntaxFactory.IdentifierName (
+                                                nameof ( IFactDispatcher.Subscribe ) ) ),
+                                        SyntaxFactory.ArgumentList (
+                                            SyntaxFactory.Argument (
+                                                SyntaxFactory.BinaryExpression (
+                                                    SyntaxKind.AsExpression,
+                                                    SyntaxFactory.ThisExpression (),
+                                                    SyntaxHelper.Type ( typeof ( IFactConsumer<> ),
+                                                        ImplGetExecVerbFactName ( factVerb ) )
+                                                    ) ) .ToEnumerable ().SeparatedList () ) 
+                                          ) );
+
+            yield break;
+        }
+
+        protected override IEnumerable<StatementSyntax> ImplSpConstructorStatementSet ()
+        {
+            foreach ( StatementSyntax stmtStx in base.ImplSpConstructorStatementSet () )
+                yield return stmtStx;
+
+            yield return SyntaxFactory.IfStatement (
+                            SyntaxFactory.BinaryExpression (
+                                SyntaxKind.EqualsExpression,
+                                SyntaxHelper.IdentifierName ( SpConstructorParameterName ),
+                                SyntaxHelper.NullLiteralExpression ),
+                            SyntaxFactory.ReturnStatement () );
+
+            // __publisher = sp.GetService ( typeof ( IFactPublisher ) ) as IFactPublisher
+            yield return SyntaxFactory.ExpressionStatement (
+                            SyntaxFactory.AssignmentExpression (
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxHelper.IdentifierName ( PublisherFieldName ),
+                                SyntaxFactory.BinaryExpression (
+                                    SyntaxKind.AsExpression,
+                                    SyntaxFactory.InvocationExpression (
+                                        SyntaxHelper.IdentifierName (
+                                            SpConstructorParameterName,
+                                            nameof ( IServiceProvider.GetService ) ),
+                                            SyntaxHelper.ArgumentList (
+                                                SyntaxFactory.Argument (
+                                                    SyntaxFactory.TypeOfExpression (
+                                                        SyntaxHelper.Type (
+                                                            typeof ( IFactPublisher ) ) ) ) ) ),
+                                    SyntaxHelper.Type ( typeof ( IFactPublisher ) ) ) ) );
+
+            // __dispatcher = sp.GetService ( typeof ( IFactDispatcher ) ) as IFactDispatcher
+            yield return SyntaxFactory.ExpressionStatement (
+                            SyntaxFactory.AssignmentExpression (
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxHelper.IdentifierName ( DispatcherFieldName ),
+                                SyntaxFactory.BinaryExpression (
+                                    SyntaxKind.AsExpression,
+                                    SyntaxFactory.InvocationExpression (
+                                        SyntaxHelper.IdentifierName (
+                                            SpConstructorParameterName,
+                                            nameof ( IServiceProvider.GetService ) ),
+                                            SyntaxHelper.ArgumentList (
+                                                SyntaxFactory.Argument (
+                                                    SyntaxFactory.TypeOfExpression (
+                                                        SyntaxHelper.Type (
+                                                            typeof ( IFactDispatcher ) ) ) ) ) ),
+                                    SyntaxHelper.Type ( typeof ( IFactDispatcher ) ) ) ) );
+
+            yield return SyntaxFactory.IfStatement (
+                            SyntaxFactory.BinaryExpression (
+                                SyntaxKind.EqualsExpression,
+                                SyntaxHelper.IdentifierName ( DispatcherFieldName ),
+                                SyntaxHelper.NullLiteralExpression ),
+                            SyntaxFactory.ReturnStatement () );
+
+            foreach ( String factVerb in ImplFactProviderVerbs )
+                yield return SyntaxFactory.ExpressionStatement (
+                                    SyntaxFactory.InvocationExpression (
+                                        SyntaxFactory.QualifiedName (
+                                            SyntaxFactory.IdentifierName ( DispatcherFieldName ),
+                                            SyntaxFactory.IdentifierName (
+                                                nameof ( IFactDispatcher.Subscribe ) ) ),
+                                        SyntaxFactory.ArgumentList (
+                                            SyntaxFactory.Argument (
+                                                SyntaxFactory.BinaryExpression (
+                                                    SyntaxKind.AsExpression,
+                                                    SyntaxFactory.ThisExpression (),
+                                                    SyntaxHelper.Type ( typeof ( IFactConsumer<> ),
+                                                        ImplGetExecVerbFactName ( factVerb ) )
+                                                    ) ) .ToEnumerable ().SeparatedList () ) 
+                                          ) );
 
             yield break;
         }
@@ -192,21 +387,74 @@ namespace Test.DependencyInjection.FactProxy
                 MethodDeclarationSyntax execMeth;
                 MethodInfo              execMethInfo;
 
-                IEnumerable<Tuple<Type, String>> _ConstructorParameterSet ( Boolean uidOnHead )
+                ConstructorInitializerSyntax _BaseInitSet ( String descrClassName )
+                {
+                    IEnumerable<ArgumentSyntax> _BaseArguments  ()
+                    {
+                        IEnumerable<ArgumentSyntax> _FactArguments ()
+                        {
+                            foreach ( Tuple<Type, String> prm in _DescrConstructorParameterSet () )
+                                yield return SyntaxFactory.Argument (
+                                    SyntaxFactory.IdentifierName ( prm.Item2 ) );
+
+                            yield break;
+                        }
+
+
+                        yield return SyntaxFactory.Argument (
+                            SyntaxFactory.IdentifierName ( SenderParameterName ) );
+
+                        if ( isUidContract )
+                            yield return SyntaxFactory.Argument (
+                                SyntaxFactory.IdentifierName ( "uid" ) );
+
+                        yield return SyntaxFactory.Argument (
+                                        SyntaxFactory.ObjectCreationExpression (
+                                            SyntaxFactory.Token ( SyntaxKind.NewKeyword ),
+                                            SyntaxFactory.IdentifierName ( descrClassName ),
+                                            SyntaxHelper.ArgumentList ( _FactArguments () ),
+                                            null ) );
+
+                        yield break;
+                    }
+
+                    return SyntaxFactory.ConstructorInitializer (
+                                SyntaxKind.BaseConstructorInitializer,
+                                SyntaxHelper.ArgumentList ( _BaseArguments () ) );
+
+                }
+
+                IEnumerable<BaseTypeSyntax> _BaseTypeSet ( Boolean isUidFact )
+                {
+                    Type baseFactType;
+
+                    baseFactType = isUidFact
+                                ? typeof ( ExecEntityVerbFact<> )
+                                : typeof ( ExecVerbFact<> );
+
+                    ImplAddReferredAssembly ( baseFactType );
+
+                    yield return SyntaxFactory.SimpleBaseType (
+                                    SyntaxHelper.Type ( baseFactType, ImplObjectContract ) );
+
+
+                    yield break;
+                }
+
+                IEnumerable<Tuple<Type, String>> _ConstructorParameterSet ()
                 {
                     if ( methInfo == null ) yield break;
 
-                    if ( uidOnHead )
+                    yield return Tuple.Create ( typeof ( Object ), SenderParameterName );
+
+                    if ( isUidContract )
                     {
                         ImplAddReferredAssembly ( typeof ( IUid ) );
                         yield return Tuple.Create ( typeof ( IUid ), FactUidParameterName );
                     }
 
-                    foreach ( ParameterInfo paramInfo in methInfo.GetParameters () )
-                    {
-                        ImplAddReferredAssembly ( paramInfo.ParameterType );
-                        yield return Tuple.Create ( paramInfo.ParameterType, paramInfo.Name );
-                    }
+                    foreach ( Tuple<Type, String> item in _DescrConstructorParameterSet () )
+                        yield return item;
 
                     yield break;
                 }
@@ -248,54 +496,17 @@ namespace Test.DependencyInjection.FactProxy
                     yield break;
                 }
 
-                IEnumerable<BaseTypeSyntax> _BaseTypeSet ( Boolean isUidFact )
+                IEnumerable<Tuple<Type, String>> _DescrConstructorParameterSet ()
                 {
-                    Type baseFactType;
+                    if ( methInfo == null ) yield break;
 
-                    baseFactType = isUidFact
-                                ? typeof ( ExecEntityVerbFact<> )
-                                : typeof ( ExecVerbFact<> );
-
-                    ImplAddReferredAssembly ( baseFactType );
-
-                    yield return SyntaxFactory.SimpleBaseType (
-                                    SyntaxHelper.Type ( baseFactType, ImplObjectContract ) );
-
-                    yield break;
-                }
-
-                ConstructorInitializerSyntax _BaseInitSet ( String descrClassName )
-                {
-                    IEnumerable<ArgumentSyntax> _BaseArguments  ()
+                    foreach ( ParameterInfo paramInfo in methInfo.GetParameters () )
                     {
-                        IEnumerable<ArgumentSyntax> _FactArguments ()
-                        {
-                            foreach ( Tuple<Type, String> prm in _ConstructorParameterSet ( false ) )
-                                yield return SyntaxFactory.Argument (
-                                    SyntaxFactory.IdentifierName ( prm.Item2 ) );
-
-                            yield break;
-                        }
-
-
-                        yield return SyntaxFactory.Argument (
-                                        SyntaxFactory.ObjectCreationExpression (
-                                            SyntaxFactory.Token ( SyntaxKind.NewKeyword ),
-                                            SyntaxFactory.IdentifierName ( descrClassName ),
-                                            SyntaxHelper.ArgumentList ( _FactArguments () ),
-                                            null ) );
-
-                        if ( isUidContract )
-                            yield return SyntaxFactory.Argument (
-                                SyntaxFactory.IdentifierName ( "uid" ) );
-
-                        yield break;
+                        ImplAddReferredAssembly ( paramInfo.ParameterType );
+                        yield return Tuple.Create ( paramInfo.ParameterType, paramInfo.Name );
                     }
 
-                    return SyntaxFactory.ConstructorInitializer (
-                                SyntaxKind.BaseConstructorInitializer,
-                                SyntaxHelper.ArgumentList ( _BaseArguments () ) );
-
+                    yield break;
                 }
 
                 IEnumerable<BaseTypeSyntax> _ParamBaseTypeSet ( String typeName )
@@ -309,10 +520,6 @@ namespace Test.DependencyInjection.FactProxy
                 IEnumerable<FieldDeclarationSyntax> _ParamsDataDecl ()
                 {
                     if ( methInfo == null ) yield break;
-
-                    //if ( typeof ( IUid ).IsAssignableFrom ( ImplObjectContract ) )
-                    //    yield return SyntaxHelper.PublicFieldDeclaration (
-                    //                                typeof ( IUid ), FactUidFieldName );
 
                     foreach ( ParameterInfo paramInfo in methInfo.GetParameters () )
                         yield return SyntaxHelper.PublicFieldDeclaration (
@@ -389,7 +596,7 @@ namespace Test.DependencyInjection.FactProxy
                 constrDeclStx = SyntaxHelper.PublicConstructorDeclaration (
                                     "Params1",
                                     _ConstructorStatementSet (),
-                                    _ConstructorParameterSet ( false ) );
+                                    _DescrConstructorParameterSet () );
 
                 ClassDeclarationSyntax classDecl = SyntaxFactory.ClassDeclaration ( "Params1" )
                     .WithModifiers ( SyntaxHelper.PublicModifier )
@@ -403,11 +610,12 @@ namespace Test.DependencyInjection.FactProxy
                 constrDeclStx = SyntaxHelper.PublicConstructorDeclaration (
                                     ImplGetExecVerbFactName ( methInfo.Name ),
                                     null,
-                                    _ConstructorParameterSet ( isUidContract ) )
+                                    _ConstructorParameterSet () )
                                 .WithInitializer ( _BaseInitSet ( "Params1" ) );
-                                        //SyntaxFactory.ConstructorInitializer (
-                                        //    SyntaxKind.BaseConstructorInitializer,
-                                        //    SyntaxHelper.ArgumentList ( "uid") ) );
+                //SyntaxFactory.ConstructorInitializer (
+                //    SyntaxKind.BaseConstructorInitializer,
+                //    SyntaxHelper.ArgumentList ( "uid") ) );
+
 
                 yield return SyntaxFactory.ClassDeclaration (
                                     ImplGetExecVerbFactName ( methInfo.Name ) )
@@ -419,6 +627,47 @@ namespace Test.DependencyInjection.FactProxy
             }
 
             yield break;
+        }
+
+        protected override ClassDeclarationSyntax ImplDeclareProxyClass ()
+        {
+            MethodDeclarationSyntax methDeclStx;
+
+            foreach ( String factVerb in ImplFactProviderVerbs )
+            {
+                StatementSyntax     stmtStx;
+                ParameterSyntax     prmStx;
+
+                stmtStx = SyntaxFactory.ExpressionStatement (
+                                SyntaxFactory.InvocationExpression (
+                                    SyntaxFactory.QualifiedName (
+                                        SyntaxFactory.IdentifierName ( "fact" ),
+                                        SyntaxFactory.IdentifierName ( "Exec" ) ),
+                                    SyntaxFactory.ArgumentList (
+                                        SyntaxFactory.Argument (
+                                            //SyntaxFactory.ThisExpression ()
+                                            SyntaxFactory.IdentifierName ( ProxiedObjectFieldName )
+                                            ).ToEnumerable ().SeparatedList () ) ) );
+
+                prmStx = SyntaxHelper.Parameter (
+                            SyntaxHelper.IdentifierName (
+                                ImplGetExecVerbFactName ( factVerb ) ), "fact" );
+
+
+                methDeclStx = SyntaxHelper.MethodDeclaration (
+                                    default ( SyntaxTokenList ),
+                                    typeof ( void ),
+                                    nameof ( IFactConsumer<IFact>.Consume ),
+                                    prmStx.ToEnumerable (),
+                                    stmtStx.ToEnumerable (),
+                                    SyntaxFactory.ExplicitInterfaceSpecifier (
+                                        _FactConsumerInterfaceStx ( factVerb ) )
+                                    );
+
+                ImplAddMember ( methDeclStx );
+            }
+
+            return base.ImplDeclareProxyClass ();
         }
     }
 }

@@ -325,11 +325,58 @@ namespace Sharpframework.Roslyn.CSharp
             SyntaxKind                      modifierKind,
             MethodInfo                      methInfo,
             IEnumerable<StatementSyntax>    statementSet )
-                => MethodDeclaration ( GetModifier ( modifierKind ), methInfo, statementSet );
+                => MethodDeclaration (
+                        GetModifier ( modifierKind ), methInfo, statementSet, null );
+
+        public static MethodDeclarationSyntax MethodDeclaration (
+            SyntaxKind                          modifierKind,
+            MethodInfo                          methInfo,
+            IEnumerable<StatementSyntax>        statementSet,
+            ExplicitInterfaceSpecifierSyntax    explicitInterfaceSpec )
+                => MethodDeclaration ( GetModifier ( modifierKind ),
+                        methInfo, statementSet, explicitInterfaceSpec );
 
         public static MethodDeclarationSyntax MethodDeclaration (
             MethodInfo                      methInfo,
             IEnumerable<StatementSyntax>    statementSet )
+                => MethodDeclaration ( methInfo.GetModifiers (), methInfo, statementSet, null );
+
+        public static MethodDeclarationSyntax MethodDeclaration (
+            MethodInfo                          methInfo,
+            IEnumerable<StatementSyntax>        statementSet,
+            ExplicitInterfaceSpecifierSyntax    explicitInterfaceSpec )
+                => MethodDeclaration (
+                        methInfo.GetModifiers (), methInfo, statementSet, explicitInterfaceSpec );
+        //{
+        //    IEnumerable<Tuple<Type, String>> _TranlsatedParameters ()
+        //    {
+        //        foreach ( ParameterInfo pi in methInfo.GetParameters () )
+        //            yield return Tuple.Create ( pi.ParameterType, pi.Name );
+
+        //        yield break;
+        //    }
+
+        //    TypeSyntax returnTypeStx = methInfo.ReturnType == typeof ( void )
+        //                    ? SyntaxFactory.PredefinedType (
+        //                            SyntaxFactory.Token ( SyntaxKind.VoidKeyword ) )
+        //                    : SyntaxFactory.ParseTypeName ( methInfo.ReturnType.FullName );
+
+        //    return SyntaxFactory.MethodDeclaration ( returnTypeStx, methInfo.Name )
+        //                .WithBody ( SyntaxFactory.Block ( statementSet ) )
+        //                .WithModifiers ( methInfo.GetModifiers () )
+        //                .WithParameterList ( ParameterList ( _TranlsatedParameters () ) );
+        //}
+
+        public static MethodDeclarationSyntax MethodDeclaration (
+            SyntaxTokenList modifiers,
+            MethodInfo methInfo,
+            IEnumerable<StatementSyntax> statementSet )
+                => MethodDeclaration ( modifiers, methInfo, statementSet, null );
+        public static MethodDeclarationSyntax MethodDeclaration (
+            SyntaxTokenList                     modifiers,
+            MethodInfo                          methInfo,
+            IEnumerable<StatementSyntax>        statementSet,
+            ExplicitInterfaceSpecifierSyntax    explicitInterfaceSpec )
         {
             IEnumerable<Tuple<Type, String>> _TranlsatedParameters ()
             {
@@ -339,40 +386,76 @@ namespace Sharpframework.Roslyn.CSharp
                 yield break;
             }
 
-            TypeSyntax returnTypeStx = methInfo.ReturnType == typeof ( void )
-                            ? SyntaxFactory.PredefinedType (
-                                    SyntaxFactory.Token ( SyntaxKind.VoidKeyword ) )
-                            : SyntaxFactory.ParseTypeName ( methInfo.ReturnType.FullName );
-
-            return SyntaxFactory.MethodDeclaration ( returnTypeStx, methInfo.Name )
-                        .WithBody ( SyntaxFactory.Block ( statementSet ) )
-                        .WithModifiers ( methInfo.GetModifiers () )
-                        .WithParameterList ( ParameterList ( _TranlsatedParameters () ) );
+            // Controllare che methInfo non sia null
+            return MethodDeclaration (
+                        modifiers,
+                        methInfo.ReturnType,
+                        methInfo.Name,
+                        _TranlsatedParameters (),
+                        statementSet,
+                        explicitInterfaceSpec );
         }
 
         public static MethodDeclarationSyntax MethodDeclaration (
-            SyntaxTokenList                 modifiers,
-            MethodInfo                      methInfo,
-            IEnumerable<StatementSyntax>    statementSet )
+            SyntaxTokenList modifiers,
+            Type returnType,
+            String name,
+            IEnumerable<Tuple<Type, String>> parameters,
+            IEnumerable<StatementSyntax> statementSet,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpec )
+                => MethodDeclaration (
+                        modifiers,
+                        returnType,
+                        name,
+                        ParameterSet ( parameters ),
+                        statementSet,
+                        explicitInterfaceSpec );
+
+        public static MethodDeclarationSyntax MethodDeclaration (
+            SyntaxTokenList                     modifiers,
+            Type                                returnType,
+            String                              name,
+            IEnumerable<ParameterSyntax>        parameters,
+            IEnumerable<StatementSyntax>        statementSet,
+            ExplicitInterfaceSpecifierSyntax    explicitInterfaceSpec )
         {
-            IEnumerable<Tuple<Type, String>> _TranlsatedParameters ()
-            {
-                foreach ( ParameterInfo pi in methInfo.GetParameters () )
-                    yield return Tuple.Create ( pi.ParameterType, pi.Name );
+            ParameterListSyntax paramListStx;
+            TypeSyntax          returnTypeStx;
 
-                yield break;
-            }
+            paramListStx = parameters == null
+                            ? default ( ParameterListSyntax )
+                            : SyntaxFactory.ParameterList ( parameters.SeparatedList () );
 
-            TypeSyntax returnTypeStx = methInfo.ReturnType == typeof ( void )
-                            ? SyntaxFactory.PredefinedType (
-                                    SyntaxFactory.Token ( SyntaxKind.VoidKeyword ) )
-                            : SyntaxFactory.ParseTypeName ( methInfo.ReturnType.FullName );
+            if ( returnType == typeof ( void ) )
+                returnTypeStx = SyntaxFactory.PredefinedType (
+                                    SyntaxFactory.Token ( SyntaxKind.VoidKeyword ) );
+            else
+                returnTypeStx = SyntaxHelper.IdentifierName ( returnType.FullName );
 
-            return SyntaxFactory.MethodDeclaration ( returnTypeStx, methInfo.Name )
-                        .WithBody ( SyntaxFactory.Block ( statementSet ) )
-                        .WithModifiers ( modifiers )
-                        .WithParameterList ( ParameterList ( _TranlsatedParameters () ) );
+            return SyntaxFactory.MethodDeclaration (
+                default ( SyntaxList<AttributeListSyntax> ),
+                modifiers,
+                returnTypeStx,
+                explicitInterfaceSpec,
+                SyntaxFactory.Identifier ( name ),
+                default ( TypeParameterListSyntax ),
+                paramListStx,
+                default ( SyntaxList<TypeParameterConstraintClauseSyntax> ),
+                SyntaxFactory.Block ( statementSet ),
+                default ( SyntaxToken )
+                );
         }
+
+        public static ParameterSyntax Parameter ( Type parameterType, String parameterName )
+            => Parameter ( SyntaxHelper.IdentifierName ( parameterType.FullName ), parameterName );
+
+        public static ParameterSyntax Parameter ( TypeSyntax parameterType, String parameterName )
+            => SyntaxFactory.Parameter (
+                    default ( SyntaxList<AttributeListSyntax> ),
+                    default ( SyntaxTokenList ),
+                    parameterType,
+                    SyntaxFactory.Identifier ( parameterName ),
+                    default ( EqualsValueClauseSyntax ) );
 
         public static ParameterListSyntax ParameterList (
             IEnumerable<Tuple<Type, String>> parameters )
@@ -383,12 +466,7 @@ namespace Sharpframework.Roslyn.CSharp
             if ( parameters == null ) yield break;
 
             foreach ( Tuple<Type, String> param in parameters )
-                yield return SyntaxFactory.Parameter (
-                                    EmptySyntaxList<AttributeListSyntax> (),
-                                    EmptyTokenList (),
-                                    SyntaxFactory.ParseTypeName ( param.Item1.FullName ),
-                                    SyntaxFactory.Identifier ( param.Item2 ),
-                                    null );
+                yield return Parameter ( param.Item1, param.Item2 );
 
             yield break;
         }
@@ -490,8 +568,8 @@ namespace Sharpframework.Roslyn.CSharp
             Func<InputItemType, SyntaxItemType> StxItemGeneratorDlg,
             IEnumerable<InputItemType>          parameters )
         {
-            if ( parameters == null ) yield break;
-            if ( StxItemGeneratorDlg == null ) yield break;
+            if ( parameters             == null ) yield break;
+            if ( StxItemGeneratorDlg    == null ) yield break;
 
             foreach ( InputItemType prm in parameters )
                 yield return StxItemGeneratorDlg ( prm );
@@ -499,18 +577,91 @@ namespace Sharpframework.Roslyn.CSharp
             yield break;
         }
 
+        public static TypeSyntax Type ( Type type )
+            => _Type ( out Int32 k, type, null as IEnumerable<String> );
+
         public static TypeSyntax Type ( Type type, params Type [] typeParams )
             => _Type ( out Int32 k, type, typeParams );
 
-        private static TypeSyntax _Type ( out Int32 outerTypeParamsNum, Type type, params Type [] typeParams )
+        public static TypeSyntax Type ( Type type, params String [] typeParamsStr )
+                => _Type ( out Int32 k, type, typeParamsStr );
+
+        private static TypeSyntax _Type (
+            out     Int32   outerTypeParamsNum,
+                    Type    type,
+            params  Type [] typeParams )
+        {
+            //NameSyntax  retVal;
+            //Int32       typeParamsCount;
+
+            //IEnumerable<Type> _PeekTypeParams ( Int32 alreadyUsed )
+            //{
+            //    for ( Int32 k = alreadyUsed ; k < type.GetGenericArguments ().Length ; k++ )
+            //        yield return typeParams [ k ];
+
+            //    yield break;
+            //}
+
+            //outerTypeParamsNum  = 0;
+            //typeParamsCount     = type.GetGenericArguments ().Length;
+
+            //retVal = type.IsNested
+            //            ? _Type ( out outerTypeParamsNum, type.DeclaringType, typeParams )
+            //                as NameSyntax
+            //            : IdentifierName ( type.Namespace );
+
+            //if ( type.IsGenericType && outerTypeParamsNum < typeParamsCount )
+            //    retVal = SyntaxFactory.QualifiedName (
+            //                retVal,
+            //                SyntaxFactory.GenericName (
+            //                    SyntaxFactory.Identifier ( type.Name.Split ( '`' ) [0] ),
+            //                    TypeArgunentList ( _PeekTypeParams ( outerTypeParamsNum ) ) ) );
+
+            //else
+            //    retVal = SyntaxFactory.QualifiedName (
+            //                retVal, SyntaxFactory.IdentifierName ( type.Name ) );
+
+            //outerTypeParamsNum = typeParamsCount;
+
+            //return retVal;
+            IEnumerable<String> _TypeParamsStr ()
+            {
+                if ( typeParams != null )
+                    for ( Int32 k = 0 ; k < typeParams.Length ; k++ )
+                        yield return typeParams [k].FullName;
+
+                yield break;
+            }
+
+            return _Type ( out outerTypeParamsNum, type, _TypeParamsStr () );
+        }
+
+        private static TypeSyntax _Type (
+            out     Int32               outerTypeParamsNum,
+                    Type                type,
+                    IEnumerable<String> typeParamsStr )
         {
             NameSyntax  retVal;
             Int32       typeParamsCount;
 
-            IEnumerable<Type> _PeekTypeParams ( Int32 alreadyUsed )
+            IEnumerable<String> _PeekTypeParams ( Int32 alreadyUsed )
             {
-                for ( Int32 k = alreadyUsed ; k < type.GetGenericArguments ().Length ; k++ )
-                    yield return typeParams [ k ];
+                if ( typeParamsStr == null )
+                    yield break;
+
+                using ( IEnumerator<String> paramEnum = typeParamsStr.GetEnumerator () )
+                {
+                    Int32 k = 0;
+
+                    while ( k < alreadyUsed )
+                        if ( paramEnum.MoveNext () )
+                            k++;
+                        else
+                            yield break;
+
+                    while ( paramEnum.MoveNext () && k++ < type.GetGenericArguments ().Length )
+                        yield return paramEnum.Current;
+                }
 
                 yield break;
             }
@@ -519,7 +670,7 @@ namespace Sharpframework.Roslyn.CSharp
             typeParamsCount     = type.GetGenericArguments ().Length;
 
             retVal = type.IsNested
-                        ? _Type ( out outerTypeParamsNum, type.DeclaringType, typeParams )
+                        ? _Type ( out outerTypeParamsNum, type.DeclaringType, typeParamsStr )
                             as NameSyntax
                         : IdentifierName ( type.Namespace );
 
@@ -545,18 +696,42 @@ namespace Sharpframework.Roslyn.CSharp
         public static TypeArgumentListSyntax TypeArgunentList ( IEnumerable<Type> argsTypes )
             => SyntaxFactory.TypeArgumentList ( TypeSet ( argsTypes ).SeparatedList () );
 
+        public static TypeArgumentListSyntax TypeArgunentList ( params String [] argsTypesStr )
+            => SyntaxFactory.TypeArgumentList ( TypeSet ( argsTypesStr ).SeparatedList () );
+
+        public static TypeArgumentListSyntax TypeArgunentList ( IEnumerable<String> argsTypesStr )
+            => SyntaxFactory.TypeArgumentList ( TypeSet ( argsTypesStr ).SeparatedList () );
+
         public static TypeParameterSyntax TypeParameter ( Type paramType )
             => SyntaxFactory.TypeParameter ( paramType.FullName );
+
+        public static TypeParameterSyntax TypeParameter ( String paramTypeStr )
+            => SyntaxFactory.TypeParameter ( paramTypeStr );
 
         public static TypeParameterListSyntax TypeParameterList ( params Type [] paramsTypes )
             => SyntaxFactory.TypeParameterList (
                                 TypeParameterSet ( paramsTypes ).SeparatedList () );
+        public static TypeParameterListSyntax TypeParameterList ( params String [] paramsTypesStr )
+            => SyntaxFactory.TypeParameterList (
+                                TypeParameterSet ( paramsTypesStr ).SeparatedList () );
+
         public static IEnumerable<TypeParameterSyntax> TypeParameterSet (
             params Type [] paramsTypes )
         {
             if ( paramsTypes == null ) yield break;
 
             foreach ( Type paramType in paramsTypes )
+                yield return TypeParameter ( paramType );
+
+            yield break;
+        }
+
+        public static IEnumerable<TypeParameterSyntax> TypeParameterSet (
+            params String [] paramsTypes )
+        {
+            if ( paramsTypes == null ) yield break;
+
+            foreach ( String paramType in paramsTypes )
                 yield return TypeParameter ( paramType );
 
             yield break;
@@ -569,12 +744,28 @@ namespace Sharpframework.Roslyn.CSharp
         public static IEnumerable<TypeSyntax> TypeSet ( IEnumerable<Type> types )
             => _TypeSet ( types );
 
+        public static IEnumerable<TypeSyntax> TypeSet ( params String [] typesStr )
+            => _TypeSet ( typesStr );
+
+        public static IEnumerable<TypeSyntax> TypeSet ( IEnumerable<String> typesStr )
+            => _TypeSet ( typesStr );
+
         private static IEnumerable<TypeSyntax> _TypeSet ( IEnumerable<Type> types )
         {
             if ( types == null ) yield break;
 
             foreach ( Type type in types )
                 yield return Type ( type );
+
+            yield break;
+        }
+
+        private static IEnumerable<TypeSyntax> _TypeSet ( IEnumerable<String> typesStr )
+        {
+            if ( typesStr == null ) yield break;
+
+            foreach ( String typeStr in typesStr )
+                yield return IdentifierName ( typeStr );
 
             yield break;
         }
@@ -616,6 +807,12 @@ namespace Sharpframework.Roslyn.CSharp
             this IEnumerable<SyntaxItemType> target )
                 where SyntaxItemType : SyntaxNode
                     => SyntaxFactory.List<SyntaxItemType> ( target );
+
+        public static IEnumerable<ItemType> ToEnumerable<ItemType> ( this ItemType item )
+        {
+            yield return item;
+            yield break;
+        }
     }
 
 }

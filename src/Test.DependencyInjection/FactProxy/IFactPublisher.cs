@@ -3,6 +3,7 @@ namespace Sharpframework.Propagation.Facts
 {
     public interface IFactPublisher
     {
-        void Publish ( IFact fact );
+        void Publish<FactType> ( FactType fact )
+            where FactType : IFact;
     }
 }
