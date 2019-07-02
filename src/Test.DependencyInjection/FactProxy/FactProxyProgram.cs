@@ -38,6 +38,164 @@ namespace Test.DependencyInjection.FactProxy
                 => __services.TryAdd ( srvType, srvInst );
         }
 
+        public class BusBase
+            : IFactPublisher
+            , IFactDispatcher
+        {
+            private Subsctibers __subscribers;
+
+
+            protected class Subsctibers
+                : KeyedCollectionBase<Type, FactSubscribersBase>
+            {
+                public void Consume<FactType> ( FactType fact )
+                    where FactType : IFact
+                {
+                    if ( TryGetValue ( fact.GetType (), out FactSubscribersBase consumers ) )
+                        consumers.Consume ( fact );
+                }
+
+                public Boolean Subscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                    where FactType :  IFact
+                {
+                    if ( TryGetValue ( typeof ( FactType ), out FactSubscribersBase consumers ) )
+                        consumers.Subscribe ( factConsumer );
+                    else
+                        Add ( new FactSubscribers<FactType> ( factConsumer ) );
+
+                    return true;
+                }
+
+                public Boolean UnSubscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                    where FactType : IFact
+                {
+                    if ( TryGetValue ( typeof ( FactType ), out FactSubscribersBase consumers ) )
+                        consumers.UnSubscribe ( factConsumer );
+
+                    return true;
+                }
+
+
+                protected override Type GetKeyForItem ( FactSubscribersBase item )
+                    => item.TypeOfFact;
+
+            }
+            protected abstract class FactSubscribersBase
+            {
+                public Type TypeOfFact { get => ImplTypeOfFact; }
+
+                public void Consume<FactType> ( FactType fact )
+                    where FactType : IFact
+                        => ImplConsume ( fact );
+
+                public Boolean Subscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                    where FactType : IFact
+                        => ImplSubscribe ( factConsumer );
+
+                public Boolean UnSubscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                    where FactType : IFact
+                        => ImplUnSubscribe ( factConsumer );
+
+                protected abstract Type ImplTypeOfFact { get; }
+
+                protected abstract void ImplConsume<FactType> ( FactType fact )
+                    where FactType : IFact;
+
+                protected abstract Boolean ImplSubscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                    where FactType : IFact;
+
+                protected abstract Boolean ImplUnSubscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                    where FactType : IFact;
+            }
+
+            protected class FactSubscribers<FactType>
+                : FactSubscribersBase
+                , IFactConsumer<FactType>
+            where FactType :  IFact
+            {
+                private DistinctList<IFactConsumer<FactType>> __factSubscribers;
+
+                public FactSubscribers ( IFactConsumer<FactType> firstSubscriber )
+                    => (__factSubscribers = new DistinctList<IFactConsumer<FactType>> ())
+                            .Add ( firstSubscriber );
+
+
+                public void Consume ( FactType fact )
+                {
+                    if ( fact != null )
+                        foreach ( IFactConsumer<FactType> consumer in __factSubscribers )
+                            consumer.Consume ( fact );
+                }
+
+                public Boolean Subscribe ( IFactConsumer<FactType> factConsumer )
+                {
+                    if ( factConsumer == null ) return false;
+
+                    __factSubscribers.Add ( factConsumer );
+
+                    return true;
+                }
+
+                protected override Type ImplTypeOfFact => typeof ( FactType );
+
+                public Boolean UnSubscribe ( IFactConsumer<FactType> factConsumer )
+                    => factConsumer != null && __factSubscribers.Remove ( factConsumer );
+
+                protected override void ImplConsume<FactType1> ( FactType1 fact )
+                {
+                    if ( typeof ( FactType1 ).IsAssignableFrom ( typeof ( FactType ) ) )
+                        Consume ( (FactType) ((IFact) fact) );
+                }
+
+                protected override Boolean ImplSubscribe<FactType1> ( IFactConsumer<FactType1> factConsumer )
+                    => Subscribe ( factConsumer as IFactConsumer<FactType> );
+
+                protected override Boolean ImplUnSubscribe<FactType1> ( IFactConsumer<FactType1> factConsumer )
+                    => UnSubscribe ( factConsumer as IFactConsumer<FactType> );
+            }
+
+            public BusBase () => __subscribers = new Subsctibers ();
+
+
+            public void Consume<FactType> ( FactType fact )
+                where FactType : class, IFact
+                    => __subscribers.Consume ( fact );
+            
+            public bool Subscribe ( IFactConsumer factConsumer )
+            {
+                throw new NotImplementedException ();
+            }
+
+            public Boolean Subscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                where FactType : IFact
+                    => __subscribers.Subscribe ( factConsumer );
+
+            public bool UnSubscribe ( object factConsumer )
+            {
+                throw new NotImplementedException ();
+            }
+
+            public Boolean UnSubscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                where FactType : IFact
+                    => __subscribers.UnSubscribe ( factConsumer );
+
+            public void Publish<FactType> ( FactType fact )
+                where FactType : IFact
+            {
+                ImplDispatch ( fact );
+                ImplPublish ( fact );
+            }
+
+
+            // Dispatch to the local registered Consumers
+            protected virtual void ImplDispatch<FactType> ( FactType fact )
+                where FactType : IFact
+                    => __subscribers.Consume ( fact );
+
+            // Publish (send) to remote Consumers (on the network)
+            protected virtual void ImplPublish<FactType> ( FactType fact )
+            { }
+        }
         public class Bus
             : IFactDispatcher
             , IFactPublisher
@@ -59,7 +217,7 @@ namespace Test.DependencyInjection.FactProxy
                     item.Consume ( fact );
             }
 
-            public bool Subscribe ( IFactConsumer factConsumer )
+            public Boolean Subscribe ( IFactConsumer factConsumer )
             {
                 throw new NotImplementedException ();
             }
@@ -82,12 +240,13 @@ namespace Test.DependencyInjection.FactProxy
                 return true;
             }
 
-            public bool UnSubscribe ( object factConsumer )
+            public Boolean UnSubscribe ( object factConsumer )
             {
                 throw new NotImplementedException ();
             }
 
-            public bool UnSubscribe<FactType> ( IFactConsumer<FactType> factConsumer ) where FactType : IFact
+            public Boolean UnSubscribe<FactType> ( IFactConsumer<FactType> factConsumer )
+                where FactType : IFact
             {
                 throw new NotImplementedException ();
             }
@@ -138,7 +297,8 @@ namespace Test.DependencyInjection.FactProxy
             compiledAssembly = CompilationHelper.CompileLibrary (
                                     "InMemoryAssembly", referredAssemblies, cuStx.SyntaxTree );
 
-            Bus                 bus = new Bus ();
+            //Bus                 bus = new Bus ();
+            BusBase             bus = new BusBase ();
             ServiceContainer    sc  = new ServiceContainer ();
             ITestFact           testFactObj1, testFactObj2;
             ITestFact           testFactProxy1, testFactProxy2;
