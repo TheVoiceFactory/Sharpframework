@@ -13,8 +13,9 @@ namespace Sharpframework.Roslyn.DynamicProxy
 {
     public class ProxyGenerator
     {
-        protected const String ProxiedObjectFieldName       = "__proxiedObject";
-        protected const String SpConstructorParameterName   = "sp";
+        protected const String DisposeProxiedObjectFieldName    = "__disposeProxiedObject";
+        protected const String ProxiedObjectFieldName           = "__proxiedObject";
+        protected const String SpConstructorParameterName       = "sp";
 
         private DistinctList<MethodInfo>        __contractMethods;
         private DistinctList<PropertyInfo>      __contractProperties;
@@ -84,6 +85,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
         protected Type ImplObjectContract { get; set; }
 
+        protected Boolean ImplProxiedObjectIsDisposable { get; private set; }
         protected virtual IEnumerable<BaseTypeSyntax> ImplProxyBaseTypes
         {
             get
@@ -107,6 +109,14 @@ namespace Sharpframework.Roslyn.DynamicProxy
                 yield break;
             }
 
+            IEnumerable<Tuple<Type, String>> _FullConstructorParameterSet ()
+            {
+                yield return Tuple.Create ( ImplObjectContract, "origObj" );
+                yield return Tuple.Create (
+                                typeof ( IServiceProvider ), SpConstructorParameterName );
+                yield break;
+            }
+
             IEnumerable<Tuple<Type, String>> _SpConstructorParameterSet ()
             {
                 yield return Tuple.Create (
@@ -118,22 +128,97 @@ namespace Sharpframework.Roslyn.DynamicProxy
             ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
                                 ImplProxyClassName,
                                 ImplDefaultConstructorStatementSet (),
-                                null ) );
+                                null )
+                                    .WithInitializer (
+                                        SyntaxFactory.ConstructorInitializer (
+                                            SyntaxKind.ThisConstructorInitializer,
+                                            SyntaxHelper.ArgumentList (
+                                                SyntaxHelper.Argument (),
+                                                SyntaxHelper.Argument () ) ) ) );
 
             ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
                                 ImplProxyClassName,
                                 ImplCopyConstructorStatementSet ( "origObj" ),
-                                _CopyConstructorParameterSet ( ImplObjectContract, "origObj" ) ) );
+                                _CopyConstructorParameterSet ( ImplObjectContract, "origObj" ) )
+                                    .WithInitializer  (
+                                        SyntaxFactory.ConstructorInitializer (
+                                            SyntaxKind.ThisConstructorInitializer,
+                                            SyntaxHelper.ArgumentList (
+                                                SyntaxHelper.Argument ( "origObj" ),
+                                                SyntaxHelper.Argument () ) ) ) );
 
             ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
                                 ImplProxyClassName,
                                 ImplSpConstructorStatementSet (),
-                                _SpConstructorParameterSet () ) );
+                                _SpConstructorParameterSet () )
+                                    .WithInitializer (
+                                        SyntaxFactory.ConstructorInitializer (
+                                            SyntaxKind.ThisConstructorInitializer,
+                                            SyntaxHelper.ArgumentList (
+                                                SyntaxHelper.Argument (),
+                                                SyntaxHelper.Argument (
+                                                    SpConstructorParameterName ) ) ) ) );
+
+            ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
+                                ImplProxyClassName,
+                                ImplFullConstructorStatementSet (),
+                                _FullConstructorParameterSet () ) );
+        }
+
+        protected virtual void ImplAddFieldsDeclarations ()
+        {
+            foreach ( FieldDeclarationSyntax fldDeclStx in ImplFieldsDeclarations () )
+                ImplAddMember ( fldDeclStx );
         }
 
         protected virtual void ImplAddMember ( MemberDeclarationSyntax member )
         {
             __membersDecl.Add ( member );
+        }
+
+        protected virtual void ImplAddNestedTypes () { }
+
+        protected virtual void ImplAddPrivateMethods () { }
+
+        protected virtual void ImplAddProtectedMethods () { }
+
+        protected virtual void ImplAddPublicMethods ()
+        {
+            //if ( typeof ( IDisposable ).IsAssignableFrom ( ImplObjectContract ) )
+            if ( ImplProxiedObjectIsDisposable )
+                ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
+                                    typeof ( IDisposable ).GetMethod (
+                                                nameof ( IDisposable.Dispose ) ),
+                                    null ) );
+
+            foreach ( MethodInfo methInfo in ImplContractMethods )
+            {
+                ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
+                                    methInfo, ImplMethodStatementSet ( methInfo ) ) );
+
+                foreach ( ParameterInfo pi in methInfo.GetParameters () )
+                    ImplAddReferredAssembly ( pi.ParameterType );
+
+                ImplAddReferredAssembly ( methInfo.ReturnType );
+            }
+        }
+
+        protected virtual void ImplAddPrivateProperties () { }
+
+        protected virtual void ImplAddProtectedProperties () { }
+
+        protected virtual void ImplAddPublicProperties ()
+        {
+            foreach ( PropertyInfo propInfo in ImplContractProperties )
+            {
+                ImplAddMember (
+                    SyntaxHelper.PublicPropertyDeclaration (
+                        propInfo,
+                        propInfo.CanRead ? ImplGetAccessorStatementSet ( propInfo ) : null,
+                        propInfo.CanWrite ? ImplSetAccessorStatementSet ( propInfo ) : null ) );
+
+                ImplAddReferredAssembly ( propInfo.PropertyType );
+            }
         }
 
         protected void ImplAddReferredAssembly ( Type type )
@@ -146,18 +231,16 @@ namespace Sharpframework.Roslyn.DynamicProxy
         {
             if ( __contractMethods      != null ) __contractMethods.Clear ();
             if ( __contractProperties   != null ) __contractProperties.Clear ();
-            if ( __membersDecl          != null ) __membersDecl.Clear ();
+
+            if ( __membersDecl == null )
+                __membersDecl = new List<MemberDeclarationSyntax> ();
+            else
+                __membersDecl.Clear ();
         }
 
         protected virtual IEnumerable<StatementSyntax> ImplCopyConstructorStatementSet (
             String origObjPrm )
         {
-            yield return SyntaxFactory.ExpressionStatement (
-                            SyntaxFactory.AssignmentExpression (
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
-                                SyntaxFactory.IdentifierName ( origObjPrm ) ) );
-
             yield break;
         }
 
@@ -175,12 +258,52 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
         protected virtual IEnumerable<FieldDeclarationSyntax> ImplFieldsDeclarations ()
         {
+            if ( ImplProxiedObjectIsDisposable )
+                yield return SyntaxHelper.PrivateFieldDeclaration (
+                                typeof ( Boolean ), DisposeProxiedObjectFieldName );
+
+
             yield return SyntaxHelper.PrivateFieldDeclaration (
                             ImplObjectContract, ProxiedObjectFieldName );
 
             yield break;
         }
 
+        protected virtual IEnumerable<StatementSyntax> ImplFullConstructorStatementSet ()
+        {
+            ExpressionSyntax ifClause = SyntaxFactory.BinaryExpression (
+                                            SyntaxKind.EqualsExpression,
+                                            SyntaxFactory.IdentifierName ( "origObj" ),
+                                            SyntaxHelper.NullLiteralExpression );
+
+            if ( ImplProxiedObjectIsDisposable )
+                ifClause = SyntaxFactory.AssignmentExpression (
+                                    SyntaxKind.SimpleAssignmentExpression,
+                                    SyntaxHelper.IdentifierName ( DisposeProxiedObjectFieldName ),
+                                    ifClause );
+
+            yield return SyntaxFactory.ExpressionStatement (
+                                SyntaxFactory.AssignmentExpression (
+                                    SyntaxKind.SimpleAssignmentExpression,
+                                    SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
+                                    SyntaxFactory.ConditionalExpression (
+                                        ifClause,
+                                        SyntaxFactory.ObjectCreationExpression (
+                                            SyntaxFactory.Token ( SyntaxKind.NewKeyword ),
+                                            SyntaxFactory.IdentifierName ( ImplObjectType.Name ),
+                                            SyntaxHelper.ArgumentList (
+                                                ImplObjectType.GetConstructor (
+                                                    typeof ( IServiceProvider ) ) == null
+                                                        ? null : SpConstructorParameterName ),
+                                            null ),
+                                        SyntaxFactory.IdentifierName ( "origObj" )
+                                        ) ) );
+
+            //foreach ( StatementSyntax stmtStx in ImplCopyConstructorStatementSet (  ) )
+            //    yield return stmtStx;
+
+            yield break;
+        }
         protected virtual ClassDeclarationSyntax ImplGenerate<ContractType, ImplementationType> (
                 ContractType            contractType,
                 ImplementationType      implementationType,
@@ -202,46 +325,24 @@ namespace Sharpframework.Roslyn.DynamicProxy
                             String.Format ( "The type specified in ImplementationType ({0}), must be a Class.",
                                             ImplObjectType.Name ) );
 
+            ImplProxiedObjectIsDisposable = typeof ( IDisposable )
+                                                .IsAssignableFrom ( ImplObjectType );
+
             ImplAddReferredAssembly ( contractType );
             ImplAddReferredAssembly ( implementationType );
             ImplAddReferredAssembly ( typeof ( IServiceProvider ) );
 
             ImplProxyClassName = ImplInitProxyClassName ( proxyClassName );
 
-            __membersDecl = new List<MemberDeclarationSyntax> ();
-
-            foreach ( FieldDeclarationSyntax fldDeclStx in ImplFieldsDeclarations () )
-                ImplAddMember ( fldDeclStx );
-
+            ImplAddNestedTypes ();
+            ImplAddFieldsDeclarations ();
             ImplAddConstructors ();
-
-
-            if ( typeof ( IDisposable ).IsAssignableFrom ( ImplObjectContract ) )
-                ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
-                                    typeof ( IDisposable ).GetMethod ( nameof ( IDisposable.Dispose ) ),
-                                    null ) );
-
-            foreach ( MethodInfo methInfo in ImplContractMethods )
-            {
-                ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
-                                    methInfo, ImplMethodStatementSet ( methInfo ) ) );
-
-                foreach ( ParameterInfo pi in methInfo.GetParameters () )
-                    ImplAddReferredAssembly ( pi.ParameterType );
-
-                ImplAddReferredAssembly ( methInfo.ReturnType );
-            }
-
-            foreach ( PropertyInfo propInfo in ImplContractProperties )
-            {
-                ImplAddMember (
-                    SyntaxHelper.PublicPropertyDeclaration (
-                        propInfo,
-                        propInfo.CanRead ? ImplGetAccessorStatementSet ( propInfo ) : null,
-                        propInfo.CanWrite ? ImplSetAccessorStatementSet ( propInfo ) : null ) );
-
-                ImplAddReferredAssembly ( propInfo.PropertyType );
-            }
+            ImplAddPublicProperties ();
+            ImplAddPublicMethods ();
+            ImplAddProtectedProperties ();
+            ImplAddProtectedMethods ();
+            ImplAddPrivateProperties ();
+            ImplAddPrivateMethods ();
 
             return ImplDeclareProxyClass ();
         }
@@ -301,21 +402,11 @@ namespace Sharpframework.Roslyn.DynamicProxy
         protected virtual IEnumerable<StatementSyntax> ImplSpConstructorStatementSet ()
             => _ConstructorStatementSet ( SyntaxHelper.ArgumentList (
                     ImplObjectType.GetConstructor ( typeof ( IServiceProvider ) ) == null
-                        ? null : "sp" ) );
+                        ? null : SpConstructorParameterName ) );
 
         private IEnumerable<StatementSyntax> _ConstructorStatementSet (
             ArgumentListSyntax arguments )
         {
-            yield return SyntaxFactory.ExpressionStatement (
-                            SyntaxFactory.AssignmentExpression (
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
-                                SyntaxFactory.ObjectCreationExpression (
-                                    SyntaxFactory.Token ( SyntaxKind.NewKeyword ),
-                                    SyntaxFactory.ParseTypeName ( ImplObjectType.Name ),
-                                    arguments,
-                                    null ) ) );
-
             yield break;
         }
     }

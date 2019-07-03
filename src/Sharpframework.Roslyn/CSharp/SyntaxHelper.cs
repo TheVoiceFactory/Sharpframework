@@ -141,6 +141,12 @@ namespace Sharpframework.Roslyn.CSharp
 
 
 
+        public static ArgumentSyntax Argument ( String argument )
+            => SyntaxFactory.Argument ( SyntaxFactory.IdentifierName ( argument ) );
+
+        public static ArgumentSyntax Argument ()
+            => SyntaxFactory.Argument ( NullLiteralExpression );
+
         public static ArgumentListSyntax ArgumentList ()
             => SyntaxFactory.ArgumentList ();
         public static ArgumentListSyntax ArgumentList ( params ArgumentSyntax [] arguments )

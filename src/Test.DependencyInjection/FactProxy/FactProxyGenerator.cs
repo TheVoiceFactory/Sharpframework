@@ -28,7 +28,6 @@ namespace Test.DependencyInjection.FactProxy
         protected const String ReturnValueVariableName  = "retVal";
         protected const String SenderParameterName      = "sender";
 
-        private Boolean                 __begin;
         private DistinctList<String>    __factProviderVerbs;
 
 
@@ -94,38 +93,16 @@ namespace Test.DependencyInjection.FactProxy
         }
 
 
-        protected override void ImplAddConstructors ()
+        protected override void ImplAddNestedTypes ()
         {
-            IEnumerable<Tuple<Type, String>> _FullConstructorParameterSet ()
-            {
-                yield return Tuple.Create ( ImplObjectContract, "origObj" );
-                yield return Tuple.Create (
-                                typeof ( IServiceProvider ), SpConstructorParameterName );
-                yield break;
-            }
+            foreach ( MemberDeclarationSyntax factDecl in _FactsDeclarations () )
+                base.ImplAddMember ( factDecl );
 
-
-            base.ImplAddConstructors ();
-
-            ImplAddMember ( SyntaxHelper.PublicConstructorDeclaration (
-                                ImplProxyClassName,
-                                ImplFullConstructorStatementSet (),
-                                _FullConstructorParameterSet () ) );
-        }
-
-        protected override void ImplAddMember ( MemberDeclarationSyntax member )
-        {
-            if ( __begin )
-                foreach ( MemberDeclarationSyntax factDecl in _FactsDeclarations () )
-                    base.ImplAddMember ( factDecl );
-
-            base.ImplAddMember ( member );
+            base.ImplAddNestedTypes ();
         }
 
         protected override void ImplClear ()
         {
-            __begin = true;
-
             if ( __factProviderVerbs != null ) __factProviderVerbs.Clear ();
 
             base.ImplClear ();
@@ -220,110 +197,37 @@ namespace Test.DependencyInjection.FactProxy
             yield break;
         }
 
-        protected virtual IEnumerable<StatementSyntax> ImplFullConstructorStatementSet ()
+        protected override IEnumerable<StatementSyntax> ImplFullConstructorStatementSet ()
         {
-            foreach ( StatementSyntax stmtStx in base.ImplCopyConstructorStatementSet (  "origObj" ) )
-                yield return stmtStx;
-
-            yield return SyntaxFactory.IfStatement (
-                            SyntaxFactory.BinaryExpression (
-                                SyntaxKind.EqualsExpression,
-                                SyntaxHelper.IdentifierName ( SpConstructorParameterName ),
-                                SyntaxHelper.NullLiteralExpression ),
-                            SyntaxFactory.ReturnStatement () );
-
-            // __publisher = sp.GetService ( typeof ( IFactPublisher ) ) as IFactPublisher
-            yield return SyntaxFactory.ExpressionStatement (
-                            SyntaxFactory.AssignmentExpression (
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxHelper.IdentifierName ( PublisherFieldName ),
-                                SyntaxFactory.BinaryExpression (
-                                    SyntaxKind.AsExpression,
-                                    SyntaxFactory.InvocationExpression (
-                                        SyntaxHelper.IdentifierName (
-                                            SpConstructorParameterName,
-                                            nameof ( IServiceProvider.GetService ) ),
-                                            SyntaxHelper.ArgumentList (
-                                                SyntaxFactory.Argument (
-                                                    SyntaxFactory.TypeOfExpression (
-                                                        SyntaxHelper.Type (
-                                                            typeof ( IFactPublisher ) ) ) ) ) ),
-                                    SyntaxHelper.Type ( typeof ( IFactPublisher ) ) ) ) );
-
-            // __dispatcher = sp.GetService ( typeof ( IFactDispatcher ) ) as IFactDispatcher
-            yield return SyntaxFactory.ExpressionStatement (
-                            SyntaxFactory.AssignmentExpression (
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxHelper.IdentifierName ( DispatcherFieldName ),
-                                SyntaxFactory.BinaryExpression (
-                                    SyntaxKind.AsExpression,
-                                    SyntaxFactory.InvocationExpression (
-                                        SyntaxHelper.IdentifierName (
-                                            SpConstructorParameterName,
-                                            nameof ( IServiceProvider.GetService ) ),
-                                            SyntaxHelper.ArgumentList (
-                                                SyntaxFactory.Argument (
-                                                    SyntaxFactory.TypeOfExpression (
-                                                        SyntaxHelper.Type (
-                                                            typeof ( IFactDispatcher ) ) ) ) ) ),
-                                    SyntaxHelper.Type ( typeof ( IFactDispatcher ) ) ) ) );
-
-            yield return SyntaxFactory.IfStatement (
-                            SyntaxFactory.BinaryExpression (
-                                SyntaxKind.EqualsExpression,
-                                SyntaxHelper.IdentifierName ( DispatcherFieldName ),
-                                SyntaxHelper.NullLiteralExpression ),
-                            SyntaxFactory.ReturnStatement () );
-
-            foreach ( String factVerb in ImplFactProviderVerbs )
+            IEnumerable<StatementSyntax> _ClearFieldsAndReturn ()
+            {
                 yield return SyntaxFactory.ExpressionStatement (
-                                    SyntaxFactory.InvocationExpression (
-                                        SyntaxFactory.QualifiedName (
-                                            SyntaxFactory.IdentifierName ( DispatcherFieldName ),
-                                            SyntaxFactory.IdentifierName (
-                                                nameof ( IFactDispatcher.Subscribe ) ) ),
-                                        SyntaxFactory.ArgumentList (
-                                            SyntaxFactory.Argument (
-                                                SyntaxFactory.BinaryExpression (
-                                                    SyntaxKind.AsExpression,
-                                                    SyntaxFactory.ThisExpression (),
-                                                    SyntaxHelper.Type ( typeof ( IFactConsumer<> ),
-                                                        ImplGetExecVerbFactName ( factVerb ) )
-                                                    ) ) .ToEnumerable ().SeparatedList () ) 
-                                          ) );
+                                SyntaxFactory.AssignmentExpression (
+                                    SyntaxKind.SimpleAssignmentExpression,
+                                    SyntaxFactory.IdentifierName ( DispatcherFieldName ),
+                                    SyntaxHelper.NullLiteralExpression ) );
 
-            yield break;
-        }
+                yield return SyntaxFactory.ExpressionStatement (
+                                SyntaxFactory.AssignmentExpression (
+                                    SyntaxKind.SimpleAssignmentExpression,
+                                    SyntaxFactory.IdentifierName ( PublisherFieldName ),
+                                    SyntaxHelper.NullLiteralExpression ) );
 
-        protected override IEnumerable<StatementSyntax> ImplSpConstructorStatementSet ()
-        {
-            foreach ( StatementSyntax stmtStx in base.ImplSpConstructorStatementSet () )
+                yield return SyntaxFactory.ReturnStatement ();
+
+                yield break;
+            }
+
+            foreach ( StatementSyntax stmtStx in base.ImplFullConstructorStatementSet () )
                 yield return stmtStx;
 
+            // if ( sp == null ) ...
             yield return SyntaxFactory.IfStatement (
                             SyntaxFactory.BinaryExpression (
                                 SyntaxKind.EqualsExpression,
                                 SyntaxHelper.IdentifierName ( SpConstructorParameterName ),
                                 SyntaxHelper.NullLiteralExpression ),
-                            SyntaxFactory.ReturnStatement () );
-
-            // __publisher = sp.GetService ( typeof ( IFactPublisher ) ) as IFactPublisher
-            yield return SyntaxFactory.ExpressionStatement (
-                            SyntaxFactory.AssignmentExpression (
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxHelper.IdentifierName ( PublisherFieldName ),
-                                SyntaxFactory.BinaryExpression (
-                                    SyntaxKind.AsExpression,
-                                    SyntaxFactory.InvocationExpression (
-                                        SyntaxHelper.IdentifierName (
-                                            SpConstructorParameterName,
-                                            nameof ( IServiceProvider.GetService ) ),
-                                            SyntaxHelper.ArgumentList (
-                                                SyntaxFactory.Argument (
-                                                    SyntaxFactory.TypeOfExpression (
-                                                        SyntaxHelper.Type (
-                                                            typeof ( IFactPublisher ) ) ) ) ) ),
-                                    SyntaxHelper.Type ( typeof ( IFactPublisher ) ) ) ) );
+                            SyntaxFactory.Block ( _ClearFieldsAndReturn () ) );
 
             // __dispatcher = sp.GetService ( typeof ( IFactDispatcher ) ) as IFactDispatcher
             yield return SyntaxFactory.ExpressionStatement (
@@ -342,6 +246,24 @@ namespace Test.DependencyInjection.FactProxy
                                                         SyntaxHelper.Type (
                                                             typeof ( IFactDispatcher ) ) ) ) ) ),
                                     SyntaxHelper.Type ( typeof ( IFactDispatcher ) ) ) ) );
+
+            // __publisher = sp.GetService ( typeof ( IFactPublisher ) ) as IFactPublisher
+            yield return SyntaxFactory.ExpressionStatement (
+                            SyntaxFactory.AssignmentExpression (
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxHelper.IdentifierName ( PublisherFieldName ),
+                                SyntaxFactory.BinaryExpression (
+                                    SyntaxKind.AsExpression,
+                                    SyntaxFactory.InvocationExpression (
+                                        SyntaxHelper.IdentifierName (
+                                            SpConstructorParameterName,
+                                            nameof ( IServiceProvider.GetService ) ),
+                                            SyntaxHelper.ArgumentList (
+                                                SyntaxFactory.Argument (
+                                                    SyntaxFactory.TypeOfExpression (
+                                                        SyntaxHelper.Type (
+                                                            typeof ( IFactPublisher ) ) ) ) ) ),
+                                    SyntaxHelper.Type ( typeof ( IFactPublisher ) ) ) ) );
 
             yield return SyntaxFactory.IfStatement (
                             SyntaxFactory.BinaryExpression (
@@ -373,8 +295,6 @@ namespace Test.DependencyInjection.FactProxy
 
         private IEnumerable<MemberDeclarationSyntax> _FactsDeclarations ()
         {
-            __begin = false;
-
             ConstructorDeclarationSyntax    constrDeclStx;
             Boolean                         isUidContract;
 
