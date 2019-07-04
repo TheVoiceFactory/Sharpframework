@@ -333,6 +333,16 @@ namespace Test.DependencyInjection.FactProxy
 
             testFactProxy1.ChangeName ( "Coccodrillo" );
 
+            testFactProxy1.Dispose ();
+            testFactProxy2.Dispose ();
+
+            testFactProxy1 = null;
+            testFactProxy2 = null;
+
+            GC.Collect ();
+            GC.WaitForPendingFinalizers ();
+            GC.Collect ();
+
             return;
         }
     }

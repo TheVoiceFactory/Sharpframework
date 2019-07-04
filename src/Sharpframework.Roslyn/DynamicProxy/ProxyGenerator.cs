@@ -86,6 +86,9 @@ namespace Sharpframework.Roslyn.DynamicProxy
         protected Type ImplObjectContract { get; set; }
 
         protected Boolean ImplProxiedObjectIsDisposable { get; private set; }
+
+        protected Boolean ImplProxiedObjectIsReferenceType { get; private set; }
+
         protected virtual IEnumerable<BaseTypeSyntax> ImplProxyBaseTypes
         {
             get
@@ -165,6 +168,12 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                 _FullConstructorParameterSet () ) );
         }
 
+        protected virtual void ImplAddDestructor ()
+            => ImplAddMember ( SyntaxHelper.DestructorDeclaration (
+                                            ImplProxyClassName, ImplDestructorStatementSet () ) );
+
+        protected virtual void ImplAddExplicitInterfaceImplementations () { }
+
         protected virtual void ImplAddFieldsDeclarations ()
         {
             foreach ( FieldDeclarationSyntax fldDeclStx in ImplFieldsDeclarations () )
@@ -184,12 +193,10 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
         protected virtual void ImplAddPublicMethods ()
         {
-            //if ( typeof ( IDisposable ).IsAssignableFrom ( ImplObjectContract ) )
-            if ( ImplProxiedObjectIsDisposable )
-                ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
-                                    typeof ( IDisposable ).GetMethod (
-                                                nameof ( IDisposable.Dispose ) ),
-                                    null ) );
+            ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
+                                typeof ( IDisposable ).GetMethod (
+                                            nameof ( IDisposable.Dispose ) ),
+                                ImplDisposeStatementSet () ) );
 
             foreach ( MethodInfo methInfo in ImplContractMethods )
             {
@@ -255,6 +262,62 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
         protected virtual IEnumerable<StatementSyntax> ImplDefaultConstructorStatementSet ()
             => _ConstructorStatementSet ( SyntaxHelper.ArgumentList () );
+
+        protected virtual IEnumerable<StatementSyntax> ImplDestructorStatementSet ()
+        {
+            yield return SyntaxFactory.ExpressionStatement (
+                            SyntaxHelper.InvocationExpression ( nameof ( IDisposable.Dispose ) ) );
+
+            yield break;
+        }
+
+        protected virtual IEnumerable<StatementSyntax> ImplDisposeStatementSet ()
+        {
+            if ( ImplProxiedObjectIsDisposable )
+            {
+                ExpressionSyntax ifClause;
+
+                ifClause =  SyntaxFactory.BinaryExpression (
+                                SyntaxKind.NotEqualsExpression,
+                                SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ),
+                                SyntaxHelper.NullLiteralExpression );
+
+                if ( ImplProxiedObjectIsReferenceType )
+                {
+                    // if ( __disposeProxiedObject && __proxiedObject != null ) __proxiedObject.Dispose ();
+                    yield return SyntaxFactory.IfStatement (
+                                    SyntaxFactory.BinaryExpression (
+                                        SyntaxKind.LogicalAndExpression,
+                                        SyntaxFactory.IdentifierName ( DisposeProxiedObjectFieldName ),
+                                        ifClause ),
+                                    SyntaxFactory.ExpressionStatement (
+                                        SyntaxFactory.InvocationExpression (
+                                            SyntaxHelper.IdentifierName (
+                                                ProxiedObjectFieldName,
+                                                nameof ( IDisposable.Dispose ) ),
+                                            SyntaxHelper.ArgumentList () ) ) );
+
+                    yield return SyntaxFactory.ExpressionStatement (
+                                    SyntaxFactory.AssignmentExpression (
+                                        SyntaxKind.SimpleAssignmentExpression,
+                                        SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
+                                        SyntaxHelper.NullLiteralExpression ) );
+
+                }
+                else
+                    // if ( __disposeProxiedObject ) __proxiedObject.Dispose ();
+                    yield return SyntaxFactory.IfStatement (
+                                    SyntaxFactory.IdentifierName ( DisposeProxiedObjectFieldName ),
+                                    SyntaxFactory.ExpressionStatement (
+                                        SyntaxFactory.InvocationExpression (
+                                            SyntaxHelper.IdentifierName (
+                                                ProxiedObjectFieldName,
+                                                nameof ( IDisposable.Dispose ) ),
+                                            SyntaxHelper.ArgumentList () ) ) );
+            }
+
+            yield break;
+        }
 
         protected virtual IEnumerable<FieldDeclarationSyntax> ImplFieldsDeclarations ()
         {
@@ -327,6 +390,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
             ImplProxiedObjectIsDisposable = typeof ( IDisposable )
                                                 .IsAssignableFrom ( ImplObjectType );
+            ImplProxiedObjectIsReferenceType = !ImplObjectType.IsValueType;
 
             ImplAddReferredAssembly ( contractType );
             ImplAddReferredAssembly ( implementationType );
@@ -337,12 +401,14 @@ namespace Sharpframework.Roslyn.DynamicProxy
             ImplAddNestedTypes ();
             ImplAddFieldsDeclarations ();
             ImplAddConstructors ();
+            ImplAddDestructor ();
             ImplAddPublicProperties ();
             ImplAddPublicMethods ();
             ImplAddProtectedProperties ();
             ImplAddProtectedMethods ();
             ImplAddPrivateProperties ();
             ImplAddPrivateMethods ();
+            ImplAddExplicitInterfaceImplementations ();
 
             return ImplDeclareProxyClass ();
         }

@@ -213,6 +213,23 @@ namespace Sharpframework.Roslyn.CSharp
                         .WithParameterList ( paramListStx );
         }
 
+
+        public static DestructorDeclarationSyntax DestructorDeclaration (
+            String              className,
+            StatementSyntax []  bodyStatementSet )
+                => DestructorDeclaration (
+                        className, bodyStatementSet as IEnumerable<StatementSyntax> );
+
+        public static DestructorDeclarationSyntax DestructorDeclaration (
+            String                          className,
+            IEnumerable<StatementSyntax>    bodyStatementSet )
+                => SyntaxFactory.DestructorDeclaration (
+                                        default ( SyntaxList<AttributeListSyntax> ),
+                                        default ( SyntaxTokenList ),
+                                        SyntaxFactory.Identifier ( className ),
+                                        ParameterList (),
+                                        SyntaxFactory.Block ( bodyStatementSet ) );
+        
         public static IEnumerable<OutputItemType> ConvertSet<OutputItemType, InputItemType> (
             IEnumerable<InputItemType>          inputSet,
             Func<InputItemType, OutputItemType> ItemConverterDlg )
@@ -463,6 +480,8 @@ namespace Sharpframework.Roslyn.CSharp
                     SyntaxFactory.Identifier ( parameterName ),
                     default ( EqualsValueClauseSyntax ) );
 
+        public static ParameterListSyntax ParameterList ()
+                => SyntaxFactory.ParameterList ( ParameterSet ( null ).SeparatedList () );
         public static ParameterListSyntax ParameterList (
             IEnumerable<Tuple<Type, String>> parameters )
                 => SyntaxFactory.ParameterList ( ParameterSet ( parameters ).SeparatedList () );
