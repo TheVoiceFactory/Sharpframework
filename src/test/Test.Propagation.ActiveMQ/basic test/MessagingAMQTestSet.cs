@@ -6,6 +6,7 @@ using Sharpframework.Propagation;
 using NLog;
 using Sharpframework.Propagation.Activemq;
 using Sharpframework.EntityModel;
+using Sharpframework.Core;
 using Sharpframework.EntityModel.Implementation;
 
 namespace Test.Propagation.AMQ
@@ -14,7 +15,34 @@ namespace Test.Propagation.AMQ
     public class MessagingAMQTestSet
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
+        public class T1 : PrimitiveType<string, T1>
+        {
+            public static implicit operator T1(string value)
+            {
+                return T1.ToDerivedType(value);
+            }
+        }
+
+        public class ConT1
+        { 
+        public T1 MyT1 { get; set; }
+        }
+
+        public void SetT1(T1 val)
+        {
+            string s1 = val;
         
+        }
+        [Fact]
+        public void TestPrimitive()
+        {
+            ConT1 cont11 = new ConT1();
+
+            cont11.MyT1 = "ddddddd";
+            SetT1("Pippo");
+        
+        }
 
         [Fact]
         public void Test1()

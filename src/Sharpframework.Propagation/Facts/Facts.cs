@@ -1,125 +1,75 @@
-﻿
+﻿using Sharpframework.Core;
+using Sharpframework.EntityModel;
 using System;
-
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Sharpframework.Propagation.Facts
 {
-    using Factes.Customers;
-    using Factes.Invoices;
-
     public abstract class UniversalTimeStamp
     {
         public abstract UniversalTimeStamp Generate();
     }
 
-    public interface IFact {
-        Fact ReactionTo { get; }
-        UniversalTimeStamp When { get; }
-
-
+    public interface IFactInstance
+        : IFact
+        , IUid
+    { // -> IFactInstance
+        UniversalTimeStamp HappenedAt { get; }
     }
 
-    public abstract class Fact : IFact
+    public interface IFact
     {
-        public abstract Fact ReactionTo { get; }
-
-        public abstract UniversalTimeStamp When { get; }
-
-       
-
+        IFact ReactionTo { get; }
     }
 
-    public class Dropped : Fact
-    {
-        public override Fact ReactionTo => throw new NotImplementedException();
-
-        public override UniversalTimeStamp When => throw new NotImplementedException();
-    }
-    public  class Facts { }
-
-    namespace Factes.Customers
-    {
-        public static class FactsExtA
-        {
-            public class DroppedAFact : Fact
-            {
-                public override Fact ReactionTo => throw new NotImplementedException();
-
-                public override UniversalTimeStamp When => throw new NotImplementedException();
-            }
-            public static DroppedAFact Dropped(this Facts f)
-            {
-                return new DroppedAFact();
-            }
-        }
-    }
-    namespace Factes.Invoices
-    {
-        public static class FactsExtB
-        {
-            public class DroppedBFact : Fact
-            {
-                public override Fact ReactionTo => throw new NotImplementedException();
-
-                public override UniversalTimeStamp When => throw new NotImplementedException();
-            }
-            public static DroppedBFact DroppedB(this Facts f)
-            {
-                return new DroppedBFact();
-            }
-        }
-    }
-    
-    public interface IFactProvider<FactType> where FactType : Fact { }
-    public interface IFactSubscriber { void Subscribe(Fact fact); }
+    public class Facts { }
 
     namespace Events
     {
         public static class IFactConsumerExt
         {
-            public static void AddBus(this IFactConsumer subs,      object bus) { }
-
-        }
-
-    }
-    public class FactBus : IFactSubscriber//, IService
-    {
-        private object bus;
-
-        public IReadOnlyList<IFact> EmittedFacts => throw new NotImplementedException();
-
-        public IReadOnlyList<IFact> ReactTo => throw new NotImplementedException();
-
-        public void Subscribe(Fact fact)
-        {
-
-            Facts f = new Facts();
-            Fact f1 = f.Dropped();
-            Fact f2 = f.DroppedB();
-
-            throw new System.NotImplementedException();
-        }
-        public FactBus(object bus)
-        {
-            this.bus = bus;
+            public static void AddBus(this IFactConsumer subs, object bus)
+            {
+            }
         }
     }
+
     public interface IFactConsumer { }
 
     public interface IPlayGround
     {
-        IReadOnlyList<IFactPublisher> Transports { get; }
-    }
-    public interface IPlayer
-    {
-        IReadOnlyList<IFact> AccomplishedFacts { get; } //can be void
-        /// </summary>
-        IReadOnlyList<IFact> ReactTo{ get; }
-        IPlayGround Playground { get; }
+        IReadOnlyList<ITransport> Transports { get; }
     }
 
+    public interface IStatusID : IPrimitiveTypeValue<string> { }
+
+    public interface IPlayerFiniteStatus
+    {
+        IStatusID Current { get; }
+
+        IStatusID From { get; }
+    }
+
+    public interface IPlayerFiniteStatusMachine
+    {
+        IFact OnReactionTo { get; }
+    }
+    /// <summary>
+    /// Who can play the reactive game in the World
+    /// </summary>
+    public interface IPlayer//can be stateless
+    {
+
+        IReadOnlyList<IFact> AccomplishedFacts { get; } //can be void
+
+        /// </summary>
+        IReadOnlyList<IFactSequence > ReactTo { get; }
+
+        void Notify(IFact fact); //se dianmico occorre un observable per notificare il Playground
+        IPlayGround Playground { get; } //use Notify
+    }
+    public interface IReaction { }
+    public interface IFactSequence:IEnumerable<IFact > { }
     public interface IFactPublisher : IPublisher<IFact> { }
 
     public interface IPublisher<PublishedType>
@@ -135,62 +85,58 @@ namespace Sharpframework.Propagation.Facts
     public abstract class PlayerBase : IPlayer
     {
         public abstract IReadOnlyList<IFact> ReactTo { get; }
-       
+
         public IPlayGround Playground => throw new NotImplementedException();
 
         public IReadOnlyList<IFact> AccomplishedFacts => throw new NotImplementedException();
-    }
+        /// <summary>
+        /// It should keep memory of the Facts belonging to the Sequence , once it is complete the Reaction is triggered
+        /// </summary>
+        IReadOnlyList<IFactSequence> IPlayer.ReactTo => throw new NotImplementedException();
 
-    public class BusPlayer : IPlayGround
-    {
-        public IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
-    }
-
-    public class MSMQPlayer : IPlayGround
-    {
-        
-
-        public  IReadOnlyList<IFactPublisher> Transports => throw new NotImplementedException();
+        public void Notify(IFact fact)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public interface IEntityFactory { }
-    public class EntityFactory:IEntityFactory 
+
+    public class EntityFactory : IEntityFactory
     {
-        static IEntity Build() { return null; }
+        public static IEntity Build()
+        { return null; }
     }
 
     public static class StandardTransportExt
     {
-         static void AddStandardTransport(this IEntityFactory factory) { }
+        public static void AddStandardTransport(this IEntityFactory factory)
+        { }
     }
+
     //public class EnttityFactory:IPlyerFactory
     //{
-
-
     //}
-        
+
     //public interface IPlyerFactory
     //{
-
     //}
     public interface IEntityService : IService
-    {  IEnumerable<IEntity> Entities { get; } /* Placeholder: potrebbe non essere esposta */ }
+    { IEnumerable<IEntity> Entities { get; } /* Placeholder: potrebbe non essere esposta */ }
 
     //public interface IService { }
 
     public interface IService : IPlayer { }
 
-    public interface IEntity:IFactConsumer, IPlayer 
+    public interface IFactEntity : IFactConsumer, IPlayer
     { }
-    public interface IDocument : IEntity { }
 
-    public class Entity:IEntity
+    public interface IDocument : IFactEntity { }
+
+    public class Entity : IFactEntity
     {
-        private FactBus bus;
-    
-        public Entity (FactBus bus)
+        public Entity()
         {
-            this.bus = bus;
         }
 
         public IReadOnlyList<IFact> AccomplishedFacts => throw new NotImplementedException();
@@ -201,35 +147,86 @@ namespace Sharpframework.Propagation.Facts
 
         public IPlayGround Playground => throw new NotImplementedException();
 
-        
+        IReadOnlyList<IFactSequence> IPlayer.ReactTo => throw new NotImplementedException();
 
         public void Method1()
         {
             Facts f = new Facts();
-            Fact f1 = f.Dropped();
-            bus.Subscribe(f1);
-
         }
-        
+
+        public void Notify(IFact fact)
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    public class Fact1 : Fact
+    // di qui codice bidone di esempio
+
+    public interface IPersonaContract
     {
-        public override Fact ReactionTo => throw new NotImplementedException();
-
-        public override UniversalTimeStamp When => throw new NotImplementedException();
+        string Nome { get; }
     }
-    public class Fact2 : Fact
+    public interface IPersona : IPersonaContract
     {
-        public override Fact ReactionTo => throw new NotImplementedException();
-
-        public override UniversalTimeStamp When => throw new NotImplementedException();
+        void ChangeName(string newName);
     }
 
+    public interface IUniverse
+    {
+         void MakeItKnown(IFact appenaSuccesso);
+    }
+    public class PersonaFactory
+    {
+        public PersonaFactory (IUniverse universe) { }
+        public IPersona GetNewPersona() { return new Persona(); }
+    }
+    public class Persona : IPersona, IFactEntity
+    {
+        public string Nome => throw new NotImplementedException();
 
-    public class Service
-        : IFactProvider<Fact1>
-        , IFactProvider<Fact2>
-    { }
+        public IReadOnlyList<IFact> AccomplishedFacts => throw new NotImplementedException();
 
+        public IReadOnlyList<IFactSequence> ReactTo => throw new NotImplementedException();
+
+        public IPlayGround Playground => throw new NotImplementedException();
+
+        public void ChangeName(string newName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Notify(IFact fact)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class C1
+    {
+        private string _nome;
+        public string Nome { get => _nome; }
+
+        public void Esegui(string param, int num, ICoccodrillo cocco) { _nome = param; }
+    }
+
+    public interface ICoccodrillo
+    {
+        Single LunghezzaCoda { get; }
+        Byte NumeroDenti { get; }
+        Single Peso { get; }
+    }
+    public interface Ilogger { void Log(string logm); }
+    public class C1Proxy
+    {
+        private C1 _C1;
+        private Ilogger logger;
+        public C1Proxy(C1 classe, Ilogger logger ) { _C1 = classe; }
+       // public void Esegui(string param, int num, ICoccodrillo cocco) { _C1.Esegui(param, num); logger.Log(param); }
+    }
+
+    public class FactoryCore<ObjectType, InterfaceType>
+    {
+        private ObjectType __coreObject;
+
+    }
 }
