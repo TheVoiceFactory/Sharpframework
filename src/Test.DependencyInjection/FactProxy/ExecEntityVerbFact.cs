@@ -13,16 +13,16 @@ namespace Sharpframework.Propagation.Facts
         public UId uid;
 
 
-        public ExecEntityVerbFact () : base () { }
+        public ExecEntityVerbFact ( Object sender ) : base ( sender ) { }
 
-        public ExecEntityVerbFact ( ExecDescr execDescr )
-            => this.execDescr = execDescr;
+        public ExecEntityVerbFact ( Object sender, ExecDescr execDescr )
+            : base ( sender ) => this.execDescr = execDescr;
 
-        public ExecEntityVerbFact ( IUid uid ) : this ( null, uid ) { }
+        public ExecEntityVerbFact ( Object sender, IUid uid )
+            : this ( sender, uid, null ) { }
 
-        public ExecEntityVerbFact ( ExecDescr execDescr, IUid uid )
-             : base ( execDescr )
-                => this.uid = new UId ( uid );
+        public ExecEntityVerbFact ( Object sender, IUid uid, ExecDescr execDescr )
+             : base ( sender, execDescr ) => this.uid = new UId ( uid );
 
 
         Guid IGuidProvider.Guid => uid == null ? Guid.Empty : uid.Guid;

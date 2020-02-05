@@ -3,7 +3,7 @@
 
 namespace Sharpframework.Propagation.Facts
 {
-    public interface IFactSubscriber
+    public interface IFactDispatcher
     {
         Boolean Subscribe ( IFactConsumer factConsumer );
 
