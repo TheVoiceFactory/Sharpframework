@@ -54,6 +54,7 @@ namespace Sharpframework.Roslyn.CSharp
             SyntaxTree                  syntaxTree )
                 => CompileLibrary ( assemblyName, referredAssemblies, syntaxTree, null );
 
+        
 #if DEBUG
         public static Assembly CompileLibrary (
             String                      assemblyName,
@@ -144,6 +145,7 @@ namespace Sharpframework.Roslyn.CSharp
 
             syntaxRootNode  = syntaxTree.GetRoot () as CSharpSyntaxNode;
 
+            compilationOtions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithOptimizationLevel(OptimizationLevel.Release).WithOverflowChecks(false);
             compilation     = CreateLibraryCompilation (
                                 assemblyName, referredAssemblies, syntaxTree, compilationOtions );
 

@@ -14,7 +14,10 @@ namespace Test.DependencyInjection.DynamicProxy
             Object              retVal,
             params Object []    parameters )
         {
-            Console.WriteLine ( "Epilog Invoked" );
+            if (memberName.Contains("Plutol"))
+            {
+                Console.Write(".");
+            }
         }
 
         public static void Prolog (
@@ -23,7 +26,10 @@ namespace Test.DependencyInjection.DynamicProxy
             Object              instance,
             params Object []    parameters )
         {
-            Console.WriteLine ( "Prolog Invoked" );
+            if (memberName.Contains("Paperino"))
+            {
+                Console.Write("-");
+            }
         }
     }
 
