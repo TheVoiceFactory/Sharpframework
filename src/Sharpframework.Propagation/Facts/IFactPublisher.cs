@@ -1,6 +1,0 @@
-﻿namespace Sharpframework.Propagation.Facts
-{
-    
-
-
-}

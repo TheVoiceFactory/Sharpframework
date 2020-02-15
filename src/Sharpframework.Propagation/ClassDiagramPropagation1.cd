@@ -1,0 +1,516 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="">
+    <Position X="15.772" Y="5.611" Height="0.75" Width="1.7" />
+  </Comment>
+  <Class Name="Sharpframework.Propagation.Command&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="2.75" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Command.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Event&lt;EventType, SourceType, ContextType&gt;" Collapsed="true">
+    <Position X="5" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Event.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Event&lt;EventType, ContextType&gt;" Collapsed="true">
+    <Position X="7.25" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAEAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Event.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.PingMsg" Collapsed="true">
+    <Position X="14" Y="17.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>PingMsg.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Request&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="9.5" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAgAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Request.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Response&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="11.75" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Response.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.ResponseFactory&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="23.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAQAAABAAgAAAAAEAAAAAAAACAAAA=</HashCode>
+      <FileName>ResponseFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.SystemCommand&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="14" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAAAAAAAAQQAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>SystemCommand.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.TopicMessage&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="9.5" Y="14.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAEEAAAAAAAYAAAAAQAAQAACBAAAAAAAAACQgABAA=</HashCode>
+      <FileName>TopicMessage.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.GenericStringMessage" Collapsed="true">
+    <Position X="16.25" Y="16" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>TopicMessage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.UniversalTimeStamp" Collapsed="true">
+    <Position X="27.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.Fact" Collapsed="true">
+    <Position X="15.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.Dropped" Collapsed="true">
+    <Position X="15.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.Facts" Collapsed="true">
+    <Position X="27.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.FactBus" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="25.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAAAAAAAAAAAAAAACCAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.PlayerBase" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="29" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAAAAABAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.BusPlayer" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="23.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.MSMQPlayer" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="27.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.EntityFactory" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="23.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.StandardTransportExt" Collapsed="true">
+    <Position X="25.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.Entity" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="29" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAAAAAAAAAAAAAAgACAAQQAAAABAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Domains.ApplicationServiceBase" Collapsed="true">
+    <Position X="9.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\ApplicationService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Domains.DomainBase" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="25.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIEAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\ApplicationService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Domains.UnitOfWorkBase" Collapsed="true">
+    <Position X="9.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAACAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\ApplicationService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Domains.DomainServiceBase" Collapsed="true">
+    <Position X="9.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAEAAAAIAAAACAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\DomainServiceBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Domains.DomainWorkflowService" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="27.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainWorkflowService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.Factes.Customers.FactsExtA" Collapsed="true">
+    <Position X="29" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.Factes.Invoices.FactsExtB" Collapsed="true">
+    <Position X="23.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sharpframework.Propagation.Facts.Events.IFactConsumerExt" Collapsed="true">
+    <Position X="25.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Sharpframework.Propagation.Facts.IEntity" Collapsed="true">
+    <Position X="5.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IPlayGround" Collapsed="true">
+    <Position X="2.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ICommand" Collapsed="true">
+    <Position X="2.25" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ICommand.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ICommand&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="16.75" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ICommand.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.IEvent&lt;EventType&gt;" Collapsed="true">
+    <Position X="13" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IEvent.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.IEvent&lt;EventType, ContextType&gt;" Collapsed="true">
+    <Position X="10" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IEvent.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.IEvent" Collapsed="true">
+    <Position X="13" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IEvent.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ISystemEvent&lt;EventType, ContextType&gt;" Collapsed="true">
+    <Position X="7" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IEvent.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.IRequest" Collapsed="true">
+    <Position X="7.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IRequest.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.IRequest&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="12.25" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IRequest.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.IResponse" Collapsed="true">
+    <Position X="10" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IResponse.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.IResponse&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="14.5" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IResponse.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ISystemCommand" Collapsed="true">
+    <Position X="2.25" Y="19" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ISystemCommand.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ISystemCommand&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="21.25" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ISystemCommand.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ITopicManagerContract" Collapsed="true">
+    <Position X="16.25" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAABIAAAAAAAAAAAAAAACAAAAAAAAAAAAICAA=</HashCode>
+      <FileName>ITopicManager.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ITopicManager" Collapsed="true">
+    <Position X="16.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAEAAAACgQAAAAAIgAAAEAAAAQAA=</HashCode>
+      <FileName>ITopicManager.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ITopicMessageContract" Collapsed="true">
+    <Position X="13.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAEAAAAAAAIAAAAAAAAQAACAAAAAAAAAAAQgABAA=</HashCode>
+      <FileName>ITopicMessage.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.ITopicMessage&lt;ClassType, PayloadType&gt;" Collapsed="true">
+    <Position X="8.75" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ITopicMessage.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IFact" Collapsed="true">
+    <Position X="25.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IFactProvider&lt;FactType&gt;" Collapsed="true">
+    <Position X="27.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IFactSubscriber" Collapsed="true">
+    <Position X="29" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IFactConsumer" Collapsed="true">
+    <Position X="6.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IPlayer" Collapsed="true">
+    <Position X="6.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAAAAABAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IFactPublisher" Collapsed="true">
+    <Position X="12.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IPublisher&lt;PublishedType&gt;" Collapsed="true">
+    <Position X="12.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.ITransport" Collapsed="true">
+    <Position X="25.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IEntityFactory" Collapsed="true">
+    <Position X="23.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IEntityService" Collapsed="true">
+    <Position X="0.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IService" Collapsed="true">
+    <Position X="0.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Facts.IDocument" Collapsed="true">
+    <Position X="6.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Facts\Facts.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IDomain" Collapsed="true">
+    <Position X="29" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIEAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IUnitOfWork" Collapsed="true">
+    <Position X="27.25" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAACAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IDomainService" Collapsed="true">
+    <Position X="2.25" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IApplicationService" Collapsed="true">
+    <Position X="23.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IServiceBus" Collapsed="true">
+    <Position X="23.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAEAAAAAAAAACAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IChangeTracker" Collapsed="true">
+    <Position X="27.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIgAAAAAAAAgAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IChangeTracked" Collapsed="true">
+    <Position X="25.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IChange" Collapsed="true">
+    <Position X="2.25" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IDomainEvent" Collapsed="true">
+    <Position X="3.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAAAAAAAAAAgAAAAAIAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IIntegrationEvent" Collapsed="true">
+    <Position X="4.5" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Sharpframework.Propagation.Domains.IDomainWorkflowService" Collapsed="true">
+    <Position X="2.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Domains\IDomainWorkflowService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="8.83" />
+</ClassDiagram>
