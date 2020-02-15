@@ -87,8 +87,25 @@ namespace Test.DependencyInjection.DynamicProxy
 
             Console.WriteLine ( cuStx.ToFullString () );
 
-            compiledAssembly = CompilationHelper.CompileLibrary (
-                                    "InMemoryAssembly", referredAssemblies, cuStx.SyntaxTree );
+            //compiledAssembly = CompilationHelper.CompileLibrary (
+            //                        "InMemoryAssembly", referredAssemblies, cuStx.SyntaxTree );
+            CompilationHelper2 ch = new CompilationHelper2 ();
+
+            if ( ch.CompileLibrary ( "InMemoryAssembly", referredAssemblies, cuStx.SyntaxTree ) )
+                if ( ch.EmitLibrary () )
+                    compiledAssembly = ch.LoadLibrary ();
+                else
+                    return;
+            else
+                return;
+
+            /*compiledAssembly = ch.MakeLibrary (
+                                    "InMemoryAssembly",
+                                    referredAssemblies,
+                                    cuStx.SyntaxTree ); *//*,
+                                    new CSharpCompilationOptions ( OutputKind.DynamicallyLinkedLibrary )
+                                            .WithOptimizationLevel ( OptimizationLevel.Release )
+                                            .WithOverflowChecks ( false ) );*/
 
             proxy = _GetProxy ( compiledAssembly );
 

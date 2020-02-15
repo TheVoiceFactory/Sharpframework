@@ -193,6 +193,26 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
         protected virtual void ImplAddPublicMethods ()
         {
+            //IEnumerable<StatementSyntax> _GetNewInstanceStatementSet ()
+            //{
+            //    yield return SyntaxFactory.ReturnStatement (
+            //                            SyntaxFactory.ObjectCreationExpression (
+            //                                SyntaxFactory.Token ( SyntaxKind.NewKeyword ),
+            //                                SyntaxFactory.IdentifierName ( ImplObjectType.Name ),
+            //                                SyntaxHelper.ArgumentList (),
+            //                                null ) );
+            //    yield break;
+            //}
+
+            //ImplAddMember ( 
+            //     SyntaxHelper.MethodDeclaration (
+            //                SyntaxHelper.PublicModifier,
+            //                ImplObjectContract,
+            //                "GetNewInstance",
+            //                null as IEnumerable<Tuple<Type, String>>,
+            //                _GetNewInstanceStatementSet (),
+            //                null as ExplicitInterfaceSpecifierSyntax ) );
+
             ImplAddMember ( SyntaxHelper.PublicMethodDeclaration (
                                 typeof ( IDisposable ).GetMethod (
                                             nameof ( IDisposable.Dispose ) ),
