@@ -67,84 +67,10 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                 .AddArgument ( ProxiedObjectFieldName, true )
                                 .AddArguments ( methInfo.GetParameters () );
 
-            //IEnumerable<String> _Arguments ()
-            //{
-            //    foreach ( ParameterInfo pi in methInfo.GetParameters () )
-            //        yield return pi.Name;
-
-
-            //    yield break;
-            //}
-
-            //ArgumentListSyntax _EpilogArgumentList ( Boolean voidMethod )
-            //{
-            //    IEnumerable<ArgumentSyntax> _Arguments ()
-            //    {
-            //        yield return SyntaxFactory.Argument (
-            //                        SyntaxHelper.IdentifierName (
-            //                            typeof ( MemberType ).FullName,
-            //                            nameof ( MemberType.Method ) ) );
-
-            //        yield return SyntaxFactory.Argument (
-            //                        SyntaxHelper.StringLiteralExpression ( methInfo.Name ) );
-
-            //        yield return SyntaxFactory.Argument (
-            //                        SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ) );
-
-            //        if ( voidMethod )
-            //            yield return SyntaxFactory.Argument (
-            //                SyntaxFactory.LiteralExpression ( SyntaxKind.NullLiteralExpression ) );
-            //        else
-            //            yield return SyntaxFactory.Argument (
-            //                            SyntaxHelper.IdentifierName ( ReturnValueVariableName ) );
-
-            //        foreach ( ParameterInfo pi in methInfo.GetParameters () )
-            //            yield return SyntaxFactory.Argument (
-            //                            SyntaxHelper.IdentifierName ( pi.Name ) );
-
-            //        yield break;
-            //    }
-
-            //    return SyntaxFactory.ArgumentList ( _Arguments ().SeparatedList () );
-            //}
-
-            //ArgumentListSyntax _PrologArgumentList ()
-            //{
-            //    IEnumerable<ArgumentSyntax> _Arguments ()
-            //    {
-            //        yield return SyntaxFactory.Argument (
-            //                        SyntaxHelper.IdentifierName (
-            //                            typeof ( MemberType ).FullName,
-            //                            nameof ( MemberType.Method ) ) );
-
-            //        yield return SyntaxFactory.Argument (
-            //                        SyntaxHelper.StringLiteralExpression ( methInfo.Name ) );
-
-            //        yield return SyntaxFactory.Argument (
-            //                        SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ) );
-
-            //        foreach ( ParameterInfo pi in methInfo.GetParameters () )
-            //            yield return SyntaxFactory.Argument (
-            //                            SyntaxHelper.IdentifierName ( pi.Name ) );
-
-            //        yield break;
-            //    }
-
-            //    return SyntaxFactory.ArgumentList ( _Arguments ().SeparatedList () );
-            //} // End of _PrologArgumentList ()
-
 
             IEnumerable<PrologInterceptorAttribute> prologs;
 
             prologs = methInfo.DeclaringType.GetCustomAttributes<PrologInterceptorAttribute> ( true );
-
-            //foreach ( PrologInterceptorAttribute prolog in prologs )
-            //    yield return SyntaxFactory.ExpressionStatement (
-            //                    SyntaxFactory.InvocationExpression (
-            //                        SyntaxHelper.IdentifierName (
-            //                            prolog.InterceptorClass.FullName,
-            //                            prolog.InterceptorMethodName ),
-            //                        _PrologArgumentList () ) );
 
             foreach ( PrologInterceptorAttribute prolog in prologs )
                 yield return _PrologInvocation ( prolog );
@@ -164,13 +90,6 @@ namespace Sharpframework.Roslyn.DynamicProxy
                     foreach ( StatementSyntax stmt in base.ImplMethodStatementSet ( methInfo ) )
                         yield return stmt;
 
-                    //for ( ; go ; go = epilogEnum.MoveNext () )
-                    //    yield return SyntaxFactory.ExpressionStatement (
-                    //                    SyntaxFactory.InvocationExpression (
-                    //                        SyntaxHelper.IdentifierName (
-                    //                            epilogEnum.Current.InterceptorClass.FullName,
-                    //                            epilogEnum.Current.InterceptorMethodName ),
-                    //                        _EpilogArgumentList ( voidMethod ) ) );
                     for ( ; go ; go = epilogEnum.MoveNext () )
                         yield return _EpilogInvocation ( voidMethod, epilogEnum.Current );
                 }
@@ -184,20 +103,11 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                     SyntaxFactory.AssignmentExpression (
                                         SyntaxKind.SimpleAssignmentExpression,
                                         SyntaxFactory.IdentifierName ( ReturnValueVariableName ),
-                                        //SyntaxHelper.InvocationExpression (
-                                        //    methInfo.Name, _Arguments (),
-                                        //    ProxiedObjectFieldName ) ) );
                                         SyntaxHelper.MethodInvokation (
                                                 ProxiedObjectFieldName, methInfo.Name )
                                             .AddArguments ( methInfo.GetParameters () ) ) );
 
                     do
-                        //yield return SyntaxFactory.ExpressionStatement (
-                        //                SyntaxFactory.InvocationExpression (
-                        //                    SyntaxHelper.IdentifierName (
-                        //                        epilogEnum.Current.InterceptorClass.FullName,
-                        //                        epilogEnum.Current.InterceptorMethodName ),
-                        //                    _EpilogArgumentList ( voidMethod ) ) );
                         yield return _EpilogInvocation ( voidMethod, epilogEnum.Current );
                     while ( epilogEnum.MoveNext () );
 
