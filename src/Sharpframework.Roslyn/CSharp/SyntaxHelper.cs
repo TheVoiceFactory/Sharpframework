@@ -65,6 +65,7 @@ namespace Sharpframework.Roslyn.CSharp
 
         public static LiteralExpressionSyntax NullLiteralExpression
         { get => SyntaxFactory.LiteralExpression ( SyntaxKind.NullLiteralExpression ); }
+
         public static SyntaxToken PrivateToken
         {
             get
@@ -468,6 +469,17 @@ namespace Sharpframework.Roslyn.CSharp
                 default ( SyntaxToken )
                 );
         }
+
+        public static InvocationExpressionBuilder MethodInvokation ( String methodName )
+            => InvocationExpressionBuilder.Allocate ( methodName );
+
+        public static InvocationExpressionBuilder MethodInvokation (
+            String leftMethodName,
+            String rightMetodName )
+               => InvocationExpressionBuilder.Allocate ( leftMethodName, rightMetodName );
+
+        public static InvocationExpressionBuilder MethodInvokation ( NameSyntax methodNameStx )
+            => InvocationExpressionBuilder.Allocate ( methodNameStx );
 
         public static ParameterSyntax Parameter ( Type parameterType, String parameterName )
             => Parameter ( SyntaxHelper.IdentifierName ( parameterType.FullName ), parameterName );

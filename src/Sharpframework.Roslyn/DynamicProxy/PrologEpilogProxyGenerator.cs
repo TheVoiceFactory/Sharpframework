@@ -38,84 +38,116 @@ namespace Sharpframework.Roslyn.DynamicProxy
         protected override IEnumerable<StatementSyntax> ImplMethodStatementSet (
             MethodInfo methInfo )
         {
-            IEnumerable<String> _Arguments ()
+            ExpressionStatementSyntax _EpilogInvocation (
+                Boolean voidMethod, EpilogInterceptorAttribute epilog )
             {
-                foreach ( ParameterInfo pi in methInfo.GetParameters () )
-                    yield return pi.Name;
+                InvocationExpressionBuilder invkBld =
+                    SyntaxHelper.MethodInvokation (
+                                epilog.InterceptorClass.FullName,
+                                epilog.InterceptorMethodName )
+                            .AddArgument ( typeof ( MemberType ).FullName,
+                                            nameof ( MemberType.Method ) )
+                            .AddArgument ( methInfo.Name )
+                            .AddArgument ( ProxiedObjectFieldName, true );
+
+                if ( voidMethod )
+                    invkBld.AddArgument ( SyntaxHelper.NullLiteralExpression );
+                else
+                    invkBld.AddArgument ( ReturnValueVariableName, true );
+
+                return invkBld.AddArguments ( methInfo.GetParameters () );
+            } // End of _EpilogInvocation (...)
+
+            ExpressionStatementSyntax _PrologInvocation ( PrologInterceptorAttribute prolog )
+                => SyntaxHelper.MethodInvokation (  prolog.InterceptorClass.FullName,
+                                                    prolog.InterceptorMethodName )
+                                .AddArgument ( typeof ( MemberType ).FullName,
+                                                nameof ( MemberType.Method ) )
+                                .AddArgument ( methInfo.Name )
+                                .AddArgument ( ProxiedObjectFieldName, true )
+                                .AddArguments ( methInfo.GetParameters () );
+
+            //IEnumerable<String> _Arguments ()
+            //{
+            //    foreach ( ParameterInfo pi in methInfo.GetParameters () )
+            //        yield return pi.Name;
 
 
-                yield break;
-            }
+            //    yield break;
+            //}
 
-            ArgumentListSyntax _EpilogArgumentList ( Boolean voidMethod )
-            {
-                IEnumerable<ArgumentSyntax> _Arguments ()
-                {
-                    yield return SyntaxFactory.Argument (
-                                    SyntaxHelper.IdentifierName (
-                                        typeof ( MemberType ).FullName,
-                                        nameof ( MemberType.Method ) ) );
+            //ArgumentListSyntax _EpilogArgumentList ( Boolean voidMethod )
+            //{
+            //    IEnumerable<ArgumentSyntax> _Arguments ()
+            //    {
+            //        yield return SyntaxFactory.Argument (
+            //                        SyntaxHelper.IdentifierName (
+            //                            typeof ( MemberType ).FullName,
+            //                            nameof ( MemberType.Method ) ) );
 
-                    yield return SyntaxFactory.Argument (
-                                    SyntaxHelper.StringLiteralExpression ( methInfo.Name ) );
+            //        yield return SyntaxFactory.Argument (
+            //                        SyntaxHelper.StringLiteralExpression ( methInfo.Name ) );
 
-                    yield return SyntaxFactory.Argument (
-                                    SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ) );
+            //        yield return SyntaxFactory.Argument (
+            //                        SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ) );
 
-                    if ( voidMethod )
-                        yield return SyntaxFactory.Argument (
-                            SyntaxFactory.LiteralExpression ( SyntaxKind.NullLiteralExpression ) );
-                    else
-                        yield return SyntaxFactory.Argument (
-                                        SyntaxHelper.IdentifierName ( ReturnValueVariableName ) );
+            //        if ( voidMethod )
+            //            yield return SyntaxFactory.Argument (
+            //                SyntaxFactory.LiteralExpression ( SyntaxKind.NullLiteralExpression ) );
+            //        else
+            //            yield return SyntaxFactory.Argument (
+            //                            SyntaxHelper.IdentifierName ( ReturnValueVariableName ) );
 
-                    foreach ( ParameterInfo pi in methInfo.GetParameters () )
-                        yield return SyntaxFactory.Argument (
-                                        SyntaxHelper.IdentifierName ( pi.Name ) );
+            //        foreach ( ParameterInfo pi in methInfo.GetParameters () )
+            //            yield return SyntaxFactory.Argument (
+            //                            SyntaxHelper.IdentifierName ( pi.Name ) );
 
-                    yield break;
-                }
+            //        yield break;
+            //    }
 
-                return SyntaxFactory.ArgumentList ( _Arguments ().SeparatedList () );
-            }
+            //    return SyntaxFactory.ArgumentList ( _Arguments ().SeparatedList () );
+            //}
 
-            ArgumentListSyntax _PrologArgumentList ()
-            {
-                IEnumerable<ArgumentSyntax> _Arguments ()
-                {
-                    yield return SyntaxFactory.Argument (
-                                    SyntaxHelper.IdentifierName (
-                                        typeof ( MemberType ).FullName,
-                                        nameof ( MemberType.Method ) ) );
+            //ArgumentListSyntax _PrologArgumentList ()
+            //{
+            //    IEnumerable<ArgumentSyntax> _Arguments ()
+            //    {
+            //        yield return SyntaxFactory.Argument (
+            //                        SyntaxHelper.IdentifierName (
+            //                            typeof ( MemberType ).FullName,
+            //                            nameof ( MemberType.Method ) ) );
 
-                    yield return SyntaxFactory.Argument (
-                                    SyntaxHelper.StringLiteralExpression ( methInfo.Name ) );
+            //        yield return SyntaxFactory.Argument (
+            //                        SyntaxHelper.StringLiteralExpression ( methInfo.Name ) );
 
-                    yield return SyntaxFactory.Argument (
-                                    SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ) );
+            //        yield return SyntaxFactory.Argument (
+            //                        SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ) );
 
-                    foreach ( ParameterInfo pi in methInfo.GetParameters () )
-                        yield return SyntaxFactory.Argument (
-                                        SyntaxHelper.IdentifierName ( pi.Name ) );
+            //        foreach ( ParameterInfo pi in methInfo.GetParameters () )
+            //            yield return SyntaxFactory.Argument (
+            //                            SyntaxHelper.IdentifierName ( pi.Name ) );
 
-                    yield break;
-                }
+            //        yield break;
+            //    }
 
-                return SyntaxFactory.ArgumentList ( _Arguments ().SeparatedList () );
-            }
+            //    return SyntaxFactory.ArgumentList ( _Arguments ().SeparatedList () );
+            //} // End of _PrologArgumentList ()
 
 
             IEnumerable<PrologInterceptorAttribute> prologs;
 
             prologs = methInfo.DeclaringType.GetCustomAttributes<PrologInterceptorAttribute> ( true );
 
+            //foreach ( PrologInterceptorAttribute prolog in prologs )
+            //    yield return SyntaxFactory.ExpressionStatement (
+            //                    SyntaxFactory.InvocationExpression (
+            //                        SyntaxHelper.IdentifierName (
+            //                            prolog.InterceptorClass.FullName,
+            //                            prolog.InterceptorMethodName ),
+            //                        _PrologArgumentList () ) );
+
             foreach ( PrologInterceptorAttribute prolog in prologs )
-                yield return SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.InvocationExpression (
-                                    SyntaxHelper.IdentifierName (
-                                        prolog.InterceptorClass.FullName,
-                                        prolog.InterceptorMethodName ),
-                                    _PrologArgumentList () ) );
+                yield return _PrologInvocation ( prolog );
 
             IEnumerable<EpilogInterceptorAttribute> epilogs;
             Boolean                                 go;
@@ -132,13 +164,15 @@ namespace Sharpframework.Roslyn.DynamicProxy
                     foreach ( StatementSyntax stmt in base.ImplMethodStatementSet ( methInfo ) )
                         yield return stmt;
 
+                    //for ( ; go ; go = epilogEnum.MoveNext () )
+                    //    yield return SyntaxFactory.ExpressionStatement (
+                    //                    SyntaxFactory.InvocationExpression (
+                    //                        SyntaxHelper.IdentifierName (
+                    //                            epilogEnum.Current.InterceptorClass.FullName,
+                    //                            epilogEnum.Current.InterceptorMethodName ),
+                    //                        _EpilogArgumentList ( voidMethod ) ) );
                     for ( ; go ; go = epilogEnum.MoveNext () )
-                        yield return SyntaxFactory.ExpressionStatement (
-                                        SyntaxFactory.InvocationExpression (
-                                            SyntaxHelper.IdentifierName (
-                                                epilogEnum.Current.InterceptorClass.FullName,
-                                                epilogEnum.Current.InterceptorMethodName ),
-                                            _EpilogArgumentList ( voidMethod ) ) );
+                        yield return _EpilogInvocation ( voidMethod, epilogEnum.Current );
                 }
                 else
                 {
@@ -150,23 +184,27 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                     SyntaxFactory.AssignmentExpression (
                                         SyntaxKind.SimpleAssignmentExpression,
                                         SyntaxFactory.IdentifierName ( ReturnValueVariableName ),
-                                        SyntaxHelper.InvocationExpression (
-                                            methInfo.Name, _Arguments (),
-                                            ProxiedObjectFieldName ) ) );
+                                        //SyntaxHelper.InvocationExpression (
+                                        //    methInfo.Name, _Arguments (),
+                                        //    ProxiedObjectFieldName ) ) );
+                                        SyntaxHelper.MethodInvokation (
+                                                ProxiedObjectFieldName, methInfo.Name )
+                                            .AddArguments ( methInfo.GetParameters () ) ) );
 
                     do
-                        yield return SyntaxFactory.ExpressionStatement (
-                                        SyntaxFactory.InvocationExpression (
-                                            SyntaxHelper.IdentifierName (
-                                                epilogEnum.Current.InterceptorClass.FullName,
-                                                epilogEnum.Current.InterceptorMethodName ),
-                                            _EpilogArgumentList ( voidMethod ) ) );
+                        //yield return SyntaxFactory.ExpressionStatement (
+                        //                SyntaxFactory.InvocationExpression (
+                        //                    SyntaxHelper.IdentifierName (
+                        //                        epilogEnum.Current.InterceptorClass.FullName,
+                        //                        epilogEnum.Current.InterceptorMethodName ),
+                        //                    _EpilogArgumentList ( voidMethod ) ) );
+                        yield return _EpilogInvocation ( voidMethod, epilogEnum.Current );
                     while ( epilogEnum.MoveNext () );
 
                     yield return SyntaxFactory.ReturnStatement (
                                     SyntaxFactory.IdentifierName ( ReturnValueVariableName ) );
                 }
-            }
+             }
 
             yield break;
         }

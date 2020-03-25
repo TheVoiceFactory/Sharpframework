@@ -33,7 +33,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
             __referredAssemblies = referredAssemblies;
             ImplClear ();
             return ImplGenerate ( contractType, implementationType, referredAssemblies, null );
-        }
+        } // End of Generate<...> (...)
 
         public ClassDeclarationSyntax Generate<ContractType, ImplementationType> (
                 ContractType            contractType,
@@ -166,7 +166,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                 ImplProxyClassName,
                                 ImplFullConstructorStatementSet (),
                                 _FullConstructorParameterSet () ) );
-        }
+        } // End of ImplAddConstructors ()
 
         protected virtual void ImplAddDestructor ()
             => ImplAddMember ( SyntaxHelper.DestructorDeclaration (
@@ -178,12 +178,12 @@ namespace Sharpframework.Roslyn.DynamicProxy
         {
             foreach ( FieldDeclarationSyntax fldDeclStx in ImplFieldsDeclarations () )
                 ImplAddMember ( fldDeclStx );
-        }
+        } // End of ImplAddFieldsDeclarations ()
 
         protected virtual void ImplAddMember ( MemberDeclarationSyntax member )
         {
             __membersDecl.Add ( member );
-        }
+        } // End of ImplAddMember (...)
 
         protected virtual void ImplAddNestedTypes () { }
 
@@ -228,7 +228,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
                 ImplAddReferredAssembly ( methInfo.ReturnType );
             }
-        }
+        } // End of ImplAddPublicMethods ()
 
         protected virtual void ImplAddPrivateProperties () { }
 
@@ -246,7 +246,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
                 ImplAddReferredAssembly ( propInfo.PropertyType );
             }
-        }
+        } // End of ImplAddPublicProperties ()
 
         protected void ImplAddReferredAssembly ( Type type )
             => ImplAddReferredAssembly ( type == null ? (Assembly) null : type.Assembly );
@@ -263,13 +263,13 @@ namespace Sharpframework.Roslyn.DynamicProxy
                 __membersDecl = new List<MemberDeclarationSyntax> ();
             else
                 __membersDecl.Clear ();
-        }
+        } // End of ImplClear ()
 
         protected virtual IEnumerable<StatementSyntax> ImplCopyConstructorStatementSet (
             String origObjPrm )
         {
             yield break;
-        }
+        } // End of ImplCopyConstructorStatementSet (...)
 
         protected virtual ClassDeclarationSyntax ImplDeclareProxyClass ()
         {
@@ -278,18 +278,19 @@ namespace Sharpframework.Roslyn.DynamicProxy
                         .WithBaseList ( SyntaxFactory.BaseList (
                                             ImplProxyBaseTypes.SeparatedList () ) )
                         .WithMembers ( __membersDecl.SyntaxList () );
-        }
+        } // End of ImplDeclareProxyClass ()
 
         protected virtual IEnumerable<StatementSyntax> ImplDefaultConstructorStatementSet ()
             => _ConstructorStatementSet ( SyntaxHelper.ArgumentList () );
 
         protected virtual IEnumerable<StatementSyntax> ImplDestructorStatementSet ()
         {
-            yield return SyntaxFactory.ExpressionStatement (
-                            SyntaxHelper.InvocationExpression ( nameof ( IDisposable.Dispose ) ) );
+            //yield return SyntaxFactory.ExpressionStatement (
+            //                SyntaxHelper.InvocationExpression ( nameof ( IDisposable.Dispose ) ) );
+            yield return SyntaxHelper.MethodInvokation ( nameof ( IDisposable.Dispose ) );
 
             yield break;
-        }
+        } // End of ImplDestructorStatementSet ()
 
         protected virtual IEnumerable<StatementSyntax> ImplDisposeStatementSet ()
         {
@@ -310,13 +311,16 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                         SyntaxKind.LogicalAndExpression,
                                         SyntaxFactory.IdentifierName ( DisposeProxiedObjectFieldName ),
                                         ifClause ),
-                                    SyntaxFactory.ExpressionStatement (
-                                        SyntaxFactory.InvocationExpression (
-                                            SyntaxHelper.IdentifierName (
-                                                ProxiedObjectFieldName,
-                                                nameof ( IDisposable.Dispose ) ),
-                                            SyntaxHelper.ArgumentList () ) ) );
+                                    //SyntaxFactory.ExpressionStatement (
+                                    //    SyntaxFactory.InvocationExpression (
+                                    //        SyntaxHelper.IdentifierName (
+                                    //            ProxiedObjectFieldName,
+                                    //            nameof ( IDisposable.Dispose ) ),
+                                    //        SyntaxHelper.ArgumentList () ) ) );
+                                    SyntaxHelper.MethodInvokation ( ProxiedObjectFieldName,
+                                                            nameof ( IDisposable.Dispose ) ) );
 
+                    // <ProxiedObjectFieldName> = null;
                     yield return SyntaxFactory.ExpressionStatement (
                                     SyntaxFactory.AssignmentExpression (
                                         SyntaxKind.SimpleAssignmentExpression,
@@ -328,16 +332,18 @@ namespace Sharpframework.Roslyn.DynamicProxy
                     // if ( __disposeProxiedObject ) __proxiedObject.Dispose ();
                     yield return SyntaxFactory.IfStatement (
                                     SyntaxFactory.IdentifierName ( DisposeProxiedObjectFieldName ),
-                                    SyntaxFactory.ExpressionStatement (
-                                        SyntaxFactory.InvocationExpression (
-                                            SyntaxHelper.IdentifierName (
-                                                ProxiedObjectFieldName,
-                                                nameof ( IDisposable.Dispose ) ),
-                                            SyntaxHelper.ArgumentList () ) ) );
+                                    //SyntaxFactory.ExpressionStatement (
+                                    //    SyntaxFactory.InvocationExpression (
+                                    //        SyntaxHelper.IdentifierName (
+                                    //            ProxiedObjectFieldName,
+                                    //            nameof ( IDisposable.Dispose ) ),
+                                    //        SyntaxHelper.ArgumentList () ) ) );
+                                    SyntaxHelper.MethodInvokation ( ProxiedObjectFieldName,
+                                                            nameof ( IDisposable.Dispose ) ) );
             }
 
             yield break;
-        }
+        } // End of ImplDisposeStatementSet ()
 
         protected virtual IEnumerable<FieldDeclarationSyntax> ImplFieldsDeclarations ()
         {
@@ -350,7 +356,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                             ImplObjectContract, ProxiedObjectFieldName );
 
             yield break;
-        }
+        } // End of ImplFieldsDeclarations ()
 
         protected virtual IEnumerable<StatementSyntax> ImplFullConstructorStatementSet ()
         {
@@ -386,7 +392,8 @@ namespace Sharpframework.Roslyn.DynamicProxy
             //    yield return stmtStx;
 
             yield break;
-        }
+        } // End of ImplFullConstructorStatementSet ()
+
         protected virtual ClassDeclarationSyntax ImplGenerate<ContractType, ImplementationType> (
                 ContractType            contractType,
                 ImplementationType      implementationType,
@@ -431,7 +438,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
             ImplAddExplicitInterfaceImplementations ();
 
             return ImplDeclareProxyClass ();
-        }
+        } // End of ImplGenerate<...> (...)
 
         protected virtual IEnumerable<StatementSyntax> ImplGetAccessorStatementSet (
             PropertyInfo propInfo )
@@ -442,7 +449,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                     SyntaxFactory.IdentifierName ( propInfo.Name ) ) );
 
             yield break;
-        }
+        } // End of ImplGetAccessorStatementSet (...)
 
         protected virtual String ImplInitProxyClassName ( String name )
             => String.IsNullOrWhiteSpace ( name ) ? ImplObjectType.Name + "Proxy" : name;
@@ -450,26 +457,36 @@ namespace Sharpframework.Roslyn.DynamicProxy
         protected virtual IEnumerable<StatementSyntax> ImplMethodStatementSet (
             MethodInfo methInfo )
         {
-            IEnumerable<String> _Arguments ()
-            {
-                foreach ( ParameterInfo pi in methInfo.GetParameters () )
-                    yield return pi.Name;
+            //IEnumerable<String> _Arguments ()
+            //{
+            //    foreach ( ParameterInfo pi in methInfo.GetParameters () )
+            //        yield return pi.Name;
 
 
-                yield break;
-            }
+            //    yield break;
+            //}
+
+            //if ( methInfo.ReturnType == typeof ( void ) )
+            //    yield return SyntaxFactory.ExpressionStatement (
+            //                    SyntaxHelper.InvocationExpression (
+            //                        methInfo.Name, _Arguments (), ProxiedObjectFieldName ) );
+            //else
+            //    yield return SyntaxFactory.ReturnStatement (
+            //                    SyntaxHelper.InvocationExpression (
+            //                        methInfo.Name, _Arguments (), ProxiedObjectFieldName ) );
 
             if ( methInfo.ReturnType == typeof ( void ) )
-                yield return SyntaxFactory.ExpressionStatement (
-                                SyntaxHelper.InvocationExpression (
-                                    methInfo.Name, _Arguments (), ProxiedObjectFieldName ) );
+                yield return SyntaxHelper.MethodInvokation (    ProxiedObjectFieldName,
+                                                                methInfo.Name )
+                                            .AddArguments ( methInfo.GetParameters () );
             else
-                yield return SyntaxFactory.ReturnStatement (
-                                SyntaxHelper.InvocationExpression (
-                                    methInfo.Name, _Arguments (), ProxiedObjectFieldName ) );
+                yield return SyntaxHelper.MethodInvokation (    ProxiedObjectFieldName,
+                                                                methInfo.Name )
+                                            .AddArguments ( methInfo.GetParameters () )
+                                        .ToReturnStatement ();
 
             yield break;
-        }
+        } // End of ImplMethodStatementSet (...)
         protected virtual IEnumerable<StatementSyntax> ImplSetAccessorStatementSet (
             PropertyInfo propInfo )
         {
@@ -482,7 +499,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                     SyntaxFactory.IdentifierName ( "value" ) ) );
 
             yield break;
-        }
+        } // End of ImplSetAccessorStatementSet (...)
 
 
         protected virtual IEnumerable<StatementSyntax> ImplSpConstructorStatementSet ()
@@ -495,5 +512,5 @@ namespace Sharpframework.Roslyn.DynamicProxy
         {
             yield break;
         }
-    }
-}
+    } // End of Class ProxyGenerator
+} // End of Namespace Sharpframework.Roslyn.DynamicProxy
