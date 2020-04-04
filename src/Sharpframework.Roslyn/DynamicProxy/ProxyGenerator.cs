@@ -285,7 +285,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
 
         protected virtual IEnumerable<StatementSyntax> ImplDestructorStatementSet ()
         {
-            yield return SyntaxHelper.MethodInvokation ( nameof ( IDisposable.Dispose ) );
+            yield return SyntaxHelper.MethodInvocation ( nameof ( IDisposable.Dispose ) );
 
             yield break;
         } // End of ImplDestructorStatementSet ()
@@ -299,7 +299,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                 ifClause =  SyntaxFactory.BinaryExpression (
                                 SyntaxKind.NotEqualsExpression,
                                 SyntaxHelper.IdentifierName ( ProxiedObjectFieldName ),
-                                SyntaxHelper.NullLiteralExpression );
+                                SyntaxHelper.LiteralNull );
 
                 if ( ImplProxiedObjectIsReferenceType )
                 {
@@ -309,22 +309,26 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                         SyntaxKind.LogicalAndExpression,
                                         SyntaxFactory.IdentifierName ( DisposeProxiedObjectFieldName ),
                                         ifClause ),
-                                    SyntaxHelper.MethodInvokation ( ProxiedObjectFieldName,
+                                    SyntaxHelper.MethodInvocation ( ProxiedObjectFieldName,
                                                             nameof ( IDisposable.Dispose ) ) );
 
+                    //// <ProxiedObjectFieldName> = null;
+                    //yield return SyntaxFactory.ExpressionStatement (
+                    //                SyntaxFactory.AssignmentExpression (
+                    //                    SyntaxKind.SimpleAssignmentExpression,
+                    //                    SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
+                    //                    SyntaxHelper.LiteralNull ) );
                     // <ProxiedObjectFieldName> = null;
-                    yield return SyntaxFactory.ExpressionStatement (
-                                    SyntaxFactory.AssignmentExpression (
-                                        SyntaxKind.SimpleAssignmentExpression,
-                                        SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
-                                        SyntaxHelper.NullLiteralExpression ) );
+                    yield return SyntaxHelper.Assignment (
+                                        ProxiedObjectFieldName,
+                                        SyntaxHelper.LiteralNull );
 
                 }
                 else
                     // if ( __disposeProxiedObject ) __proxiedObject.Dispose ();
                     yield return SyntaxFactory.IfStatement (
                                     SyntaxFactory.IdentifierName ( DisposeProxiedObjectFieldName ),
-                                    SyntaxHelper.MethodInvokation ( ProxiedObjectFieldName,
+                                    SyntaxHelper.MethodInvocation ( ProxiedObjectFieldName,
                                                             nameof ( IDisposable.Dispose ) ) );
             }
 
@@ -349,7 +353,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
             ExpressionSyntax ifClause = SyntaxFactory.BinaryExpression (
                                             SyntaxKind.EqualsExpression,
                                             SyntaxFactory.IdentifierName ( "origObj" ),
-                                            SyntaxHelper.NullLiteralExpression );
+                                            SyntaxHelper.LiteralNull );
 
             if ( ImplProxiedObjectIsDisposable )
                 ifClause = SyntaxFactory.AssignmentExpression (
@@ -444,11 +448,11 @@ namespace Sharpframework.Roslyn.DynamicProxy
             MethodInfo methInfo )
         {
             if ( methInfo.ReturnType == typeof ( void ) )
-                yield return SyntaxHelper.MethodInvokation (    ProxiedObjectFieldName,
+                yield return SyntaxHelper.MethodInvocation (    ProxiedObjectFieldName,
                                                                 methInfo.Name )
                                             .AddArguments ( methInfo.GetParameters () );
             else
-                yield return SyntaxHelper.MethodInvokation (    ProxiedObjectFieldName,
+                yield return SyntaxHelper.MethodInvocation (    ProxiedObjectFieldName,
                                                                 methInfo.Name )
                                             .AddArguments ( methInfo.GetParameters () )
                                         .ToReturnStatement ();
@@ -459,13 +463,19 @@ namespace Sharpframework.Roslyn.DynamicProxy
         protected virtual IEnumerable<StatementSyntax> ImplSetAccessorStatementSet (
             PropertyInfo propInfo )
         {
-            yield return  SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.AssignmentExpression (
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    SyntaxFactory.QualifiedName (
-                                        SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
-                                        SyntaxFactory.IdentifierName ( propInfo.Name ) ),
-                                    SyntaxFactory.IdentifierName ( "value" ) ) );
+            //yield return  SyntaxFactory.ExpressionStatement (
+            //                    SyntaxFactory.AssignmentExpression (
+            //                        SyntaxKind.SimpleAssignmentExpression,
+            //                        SyntaxFactory.QualifiedName (
+            //                            SyntaxFactory.IdentifierName ( ProxiedObjectFieldName ),
+            //                            SyntaxFactory.IdentifierName ( propInfo.Name ) ),
+            //                        SyntaxFactory.IdentifierName ( "value" ) ) );
+            //yield return  SyntaxHelper.Assignment (
+            //                        SyntaxHelper.Name ( ProxiedObjectFieldName, propInfo.Name ),
+            //                        "value" );
+            //<ProxiedObjectFieldName>.<propInfo.Name> = value;
+            yield return SyntaxHelper.Assignment ( propInfo.Name, "value" )
+                                    .WithLeftPrefix ( ProxiedObjectFieldName );
 
             yield break;
         } // End of ImplSetAccessorStatementSet (...)

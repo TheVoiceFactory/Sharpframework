@@ -108,6 +108,7 @@ namespace Sharpframework.Core
 
         public static ConstructorInfo GetConstructor ( this Type target, params Type [] arguments )
             => target == null ? null : target.GetConstructor ( arguments );
+
         public static PropertyInfo[] GetPublicProperties(this Type type)
         {
             if (type.GetTypeInfo().IsInterface)
@@ -192,7 +193,14 @@ namespace Sharpframework.Core
             if ( specialNames.Count > 0 ) methods.AddRange ( specialNames );
 
             return methods.ToArray ();
-        }
+        } // End of RemovePropertiesAccessors (...)
+
+        public static IEnumerable<InstanceType> AsEnumerable<InstanceType> ( this InstanceType target )
+        {
+            if ( target != null ) yield return target;
+
+            yield break;
+        } // End of AsEnumerable<...> (...)
 
         public static void TryDispose(ref Object target)
         { target.TryDispose(); target = null; }

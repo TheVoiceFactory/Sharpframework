@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 
 namespace Sharpframework.Roslyn.CSharp
@@ -17,16 +18,33 @@ namespace Sharpframework.Roslyn.CSharp
 
         private static NotNullStack<BuilderType> __toRecycle;
 
+        private Boolean __autorelease;
+
         static BuilderBase () => __toRecycle = null;
 
+        protected BuilderBase () => __autorelease = true;
+
+
+        public BuilderType DisableAutoRelease ()
+        { __autorelease = false; return this as BuilderType; }
+
+
+        protected Boolean ImplAutoRelease { get => __autorelease; }
+
+
         protected static BuilderType ImplGetRecycled ()
-            => __toRecycle == null || __toRecycle.Count > 0
+            => __toRecycle == null || __toRecycle.Count < 1
                     ? null : __toRecycle.Pop ().ImplReset ();
 
         protected static void ImplRelease ( BuilderType releasedItem )
             => _ToRecycle.Push ( releasedItem );
 
-        protected abstract BuilderType ImplReset ();
+        protected virtual BuilderType ImplReset ()
+        {
+            __autorelease = true;
+
+            return this as BuilderType;
+        } // End of ImplReset ()
 
         private static NotNullStack<BuilderType> _ToRecycle
         {

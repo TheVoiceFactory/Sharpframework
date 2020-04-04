@@ -41,8 +41,8 @@ namespace Sharpframework.Roslyn.DynamicProxy
             ExpressionStatementSyntax _EpilogInvocation (
                 Boolean voidMethod, EpilogInterceptorAttribute epilog )
             {
-                InvocationExpressionBuilder invkBld =
-                    SyntaxHelper.MethodInvokation (
+                InvocationBuilder invkBld =
+                    SyntaxHelper.MethodInvocation (
                                 epilog.InterceptorClass.FullName,
                                 epilog.InterceptorMethodName )
                             .AddArgument ( typeof ( MemberType ).FullName,
@@ -51,7 +51,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
                             .AddArgument ( ProxiedObjectFieldName, true );
 
                 if ( voidMethod )
-                    invkBld.AddArgument ( SyntaxHelper.NullLiteralExpression );
+                    invkBld.AddArgument ( SyntaxHelper.LiteralNull );
                 else
                     invkBld.AddArgument ( ReturnValueVariableName, true );
 
@@ -59,7 +59,7 @@ namespace Sharpframework.Roslyn.DynamicProxy
             } // End of _EpilogInvocation (...)
 
             ExpressionStatementSyntax _PrologInvocation ( PrologInterceptorAttribute prolog )
-                => SyntaxHelper.MethodInvokation (  prolog.InterceptorClass.FullName,
+                => SyntaxHelper.MethodInvocation (  prolog.InterceptorClass.FullName,
                                                     prolog.InterceptorMethodName )
                                 .AddArgument ( typeof ( MemberType ).FullName,
                                                 nameof ( MemberType.Method ) )
@@ -99,13 +99,18 @@ namespace Sharpframework.Roslyn.DynamicProxy
                                     SyntaxHelper.VariableDeclaration (
                                         methInfo.ReturnType, ReturnValueVariableName ) );
 
-                    yield return SyntaxFactory.ExpressionStatement (
-                                    SyntaxFactory.AssignmentExpression (
-                                        SyntaxKind.SimpleAssignmentExpression,
-                                        SyntaxFactory.IdentifierName ( ReturnValueVariableName ),
-                                        SyntaxHelper.MethodInvokation (
-                                                ProxiedObjectFieldName, methInfo.Name )
-                                            .AddArguments ( methInfo.GetParameters () ) ) );
+                    //yield return SyntaxFactory.ExpressionStatement (
+                    //                SyntaxFactory.AssignmentExpression (
+                    //                    SyntaxKind.SimpleAssignmentExpression,
+                    //                    SyntaxFactory.IdentifierName ( ReturnValueVariableName ),
+                    //                    SyntaxHelper.MethodInvokation (
+                    //                            ProxiedObjectFieldName, methInfo.Name )
+                    //                        .AddArguments ( methInfo.GetParameters () ) ) );
+                    yield return SyntaxHelper.Assignment (
+                                            ReturnValueVariableName,
+                                            SyntaxHelper.MethodInvocation (
+                                                    ProxiedObjectFieldName, methInfo.Name )
+                                                .AddArguments ( methInfo.GetParameters () ) );
 
                     do
                         yield return _EpilogInvocation ( voidMethod, epilogEnum.Current );

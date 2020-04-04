@@ -24,14 +24,14 @@ namespace Sharpframework.Roslyn.CSharp
 
         static SyntaxHelper ()
         {
-            __internalModifier = default ( SyntaxTokenList );
-            __internalToken = default ( SyntaxToken );
-            __privateModifier = default ( SyntaxTokenList );
-            __privateToken = default ( SyntaxToken );
+            __internalModifier  = default ( SyntaxTokenList );
+            __internalToken     = default ( SyntaxToken );
+            __privateModifier   = default ( SyntaxTokenList );
+            __privateToken      = default ( SyntaxToken );
             __protectedModifier = default ( SyntaxTokenList );
-            __protectedToken = default ( SyntaxToken );
-            __publicModifier = default ( SyntaxTokenList );
-            __publicToken = default ( SyntaxToken );
+            __protectedToken    = default ( SyntaxToken );
+            __publicModifier    = default ( SyntaxTokenList );
+            __publicToken       = default ( SyntaxToken );
         }
 
         public static SyntaxToken InternalToken
@@ -63,7 +63,7 @@ namespace Sharpframework.Roslyn.CSharp
         public static LiteralExpressionSyntax LiteralTrue
         { get => SyntaxFactory.LiteralExpression ( SyntaxKind.TrueLiteralExpression ); }
 
-        public static LiteralExpressionSyntax NullLiteralExpression
+        public static LiteralExpressionSyntax LiteralNull
         { get => SyntaxFactory.LiteralExpression ( SyntaxKind.NullLiteralExpression ); }
 
         public static SyntaxToken PrivateToken
@@ -146,7 +146,7 @@ namespace Sharpframework.Roslyn.CSharp
             => SyntaxFactory.Argument ( SyntaxFactory.IdentifierName ( argument ) );
 
         public static ArgumentSyntax Argument ()
-            => SyntaxFactory.Argument ( NullLiteralExpression );
+            => SyntaxFactory.Argument ( LiteralNull );
 
         public static ArgumentListSyntax ArgumentList ()
             => SyntaxFactory.ArgumentList ();
@@ -163,11 +163,106 @@ namespace Sharpframework.Roslyn.CSharp
             => SyntaxFactory.ArgumentList ( ArgumentSet ( parameters ).SeparatedList () );
 
         public static IEnumerable<ArgumentSyntax> ArgumentSet (
-            IEnumerable<String> parameters )
-                => ConvertSet ( IdentifierSet ( parameters ), SyntaxFactory.Argument );
+                IEnumerable<String> parameters )
+            => ConvertSet ( IdentifierSet ( parameters ), SyntaxFactory.Argument );
+
+        public static IdentifierAssignmentBuilder Assignment ( String left, String right )
+            => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment (
+            IEnumerable<String> left, String right )
+                => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment (
+            String left, IEnumerable<String> right )
+                => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment (
+            IEnumerable<String> left, IEnumerable<String> right )
+                => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment ( String left, NameBuilder right )
+            => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment (
+            IEnumerable<String> left, NameBuilder right )
+                => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static ExpressionAssignmentBuilder Assignment (
+                String left, ExpressionSyntax right )
+            => ExpressionAssignmentBuilder.Allocate ( left, right );
+
+        public static ExpressionAssignmentBuilder Assignment (
+                IEnumerable<String> left, ExpressionSyntax right )
+            => ExpressionAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment ( NameBuilder left, String right )
+            => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment (
+            NameBuilder left, IEnumerable<String> right )
+                => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                NameBuilder left, NameBuilder right )
+            => IdentifierAssignmentBuilder.Allocate ( left, right );
+
+        public static ExpressionAssignmentBuilder Assignment (
+                NameBuilder left, ExpressionSyntax right )
+            => ExpressionAssignmentBuilder.Allocate ( left, right );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                String left, String right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                IEnumerable<String> left, String right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                String left, IEnumerable<String> right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                IEnumerable<String> left, IEnumerable<String> right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                String left, NameBuilder right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                IEnumerable<String> left, NameBuilder right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static ExpressionAssignmentBuilder Assignment (
+                String left, ExpressionSyntax right, AssignmentKind kind )
+            => ExpressionAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static ExpressionAssignmentBuilder Assignment (
+                IEnumerable<String> left, ExpressionSyntax right, AssignmentKind kind )
+            => ExpressionAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                NameBuilder left, String right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                NameBuilder left, IEnumerable<String> right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static IdentifierAssignmentBuilder Assignment (
+                NameBuilder left, NameBuilder right, AssignmentKind kind )
+            => IdentifierAssignmentBuilder.Allocate ( left, right, kind );
+
+        public static ExpressionAssignmentBuilder Assignment (
+                NameBuilder left, ExpressionSyntax right, AssignmentKind kind )
+            => ExpressionAssignmentBuilder.Allocate ( left, right, kind );
+
 
         public static BaseListSyntax BaseList ( Boolean fullName, params Type [] baseTypes )
             => SyntaxFactory.BaseList ( BaseTypesSet ( fullName, baseTypes ).SeparatedList () );
+
 
 
         public static IEnumerable<BaseTypeSyntax> BaseTypesSet (
@@ -470,16 +565,21 @@ namespace Sharpframework.Roslyn.CSharp
                 );
         }
 
-        public static InvocationExpressionBuilder MethodInvokation ( String methodName )
-            => InvocationExpressionBuilder.Allocate ( methodName );
+        public static InvocationBuilder MethodInvocation (
+            params String [] methodNameStrTokens )
+                => InvocationBuilder.Allocate ( methodNameStrTokens );
 
-        public static InvocationExpressionBuilder MethodInvokation (
-            String leftMethodName,
-            String rightMetodName )
-               => InvocationExpressionBuilder.Allocate ( leftMethodName, rightMetodName );
+        public static NameBuilder Name ( params String [] nameStrTokens )
+            => NameBuilder.Allocate ( nameStrTokens );
 
-        public static InvocationExpressionBuilder MethodInvokation ( NameSyntax methodNameStx )
-            => InvocationExpressionBuilder.Allocate ( methodNameStx );
+        public static NameBuilder Name ( IEnumerable<String> nameStrTokens )
+            => NameBuilder.Allocate ( nameStrTokens );
+
+        public static ExpressionAssignmentBuilder NullAssignment ( params String [] left )
+            => Assignment ( left, LiteralNull );
+
+        public static ExpressionAssignmentBuilder NullAssignment ( NameBuilder left )
+            => Assignment ( left, LiteralNull );
 
         public static ParameterSyntax Parameter ( Type parameterType, String parameterName )
             => Parameter ( SyntaxHelper.IdentifierName ( parameterType.FullName ), parameterName );

@@ -102,15 +102,18 @@ namespace Test.DependencyInjection.FactProxy
                 StatementSyntax     stmtStx;
                 ParameterSyntax     prmStx;
 
-                stmtStx = SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.InvocationExpression (
-                                    SyntaxFactory.QualifiedName (
-                                        SyntaxFactory.IdentifierName ( "fact" ),
-                                        SyntaxFactory.IdentifierName ( "Exec" ) ),
-                                    SyntaxFactory.ArgumentList (
-                                        SyntaxFactory.Argument (
-                                            SyntaxFactory.IdentifierName ( ProxiedObjectFieldName )
-                                            ).ToEnumerable ().SeparatedList () ) ) );
+                //stmtStx = SyntaxFactory.ExpressionStatement (
+                //                SyntaxFactory.InvocationExpression (
+                //                    SyntaxFactory.QualifiedName (
+                //                        SyntaxFactory.IdentifierName ( "fact" ),
+                //                        SyntaxFactory.IdentifierName ( "Exec" ) ),
+                //                    SyntaxFactory.ArgumentList (
+                //                        SyntaxFactory.Argument (
+                //                            SyntaxFactory.IdentifierName ( ProxiedObjectFieldName )
+                //                            ).ToEnumerable ().SeparatedList () ) ) );
+                // fact.Exec ( <ProxiedObjectFieldName> );
+                stmtStx = SyntaxHelper.MethodInvocation ( "fact.Exec" ) // Or "fact", "Exec"
+                                    .AddArgument ( ProxiedObjectFieldName, true );
 
                 prmStx = SyntaxHelper.Parameter (
                             SyntaxHelper.IdentifierName (
@@ -179,11 +182,13 @@ namespace Test.DependencyInjection.FactProxy
                                                       ) );
                         while ( factVerbEnum.MoveNext () );
 
-                        yield return SyntaxFactory.ExpressionStatement (
-                                        SyntaxFactory.AssignmentExpression (
-                                            SyntaxKind.SimpleAssignmentExpression,
-                                            SyntaxHelper.IdentifierName ( DispatcherFieldName ),
-                                            SyntaxHelper.NullLiteralExpression ) );
+                        //yield return SyntaxFactory.ExpressionStatement (
+                        //                SyntaxFactory.AssignmentExpression (
+                        //                    SyntaxKind.SimpleAssignmentExpression,
+                        //                    SyntaxHelper.IdentifierName ( DispatcherFieldName ),
+                        //                    SyntaxHelper.LiteralNull ) );
+                        // <DispatcherFieldName> = null;
+                        yield return SyntaxHelper.NullAssignment ( DispatcherFieldName );
 
                         yield break;
                     }
@@ -195,21 +200,25 @@ namespace Test.DependencyInjection.FactProxy
                                             SyntaxKind.NotEqualsExpression,
                                             SyntaxFactory.IdentifierName (
                                                             DispatcherFieldName ),
-                                            SyntaxHelper.NullLiteralExpression ),
+                                            SyntaxHelper.LiteralNull ),
                                         SyntaxFactory.Block ( _UnSubscribeStatementSet () ) );
                     else
-                        yield return SyntaxFactory.ExpressionStatement (
-                                        SyntaxFactory.AssignmentExpression (
-                                            SyntaxKind.SimpleAssignmentExpression,
-                                            SyntaxHelper.IdentifierName ( DispatcherFieldName ),
-                                            SyntaxHelper.NullLiteralExpression ) );
+                        //yield return SyntaxFactory.ExpressionStatement (
+                        //                SyntaxFactory.AssignmentExpression (
+                        //                    SyntaxKind.SimpleAssignmentExpression,
+                        //                    SyntaxHelper.IdentifierName ( DispatcherFieldName ),
+                        //                    SyntaxHelper.LiteralNull ) );
+                        // <DispatcherFieldName> = null;
+                        yield return SyntaxHelper.NullAssignment ( DispatcherFieldName );
                 }
 
-                yield return SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.AssignmentExpression (
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    SyntaxHelper.IdentifierName ( PublisherFieldName ),
-                                    SyntaxHelper.NullLiteralExpression ) );
+                //yield return SyntaxFactory.ExpressionStatement (
+                //                SyntaxFactory.AssignmentExpression (
+                //                    SyntaxKind.SimpleAssignmentExpression,
+                //                    SyntaxHelper.IdentifierName ( PublisherFieldName ),
+                //                    SyntaxHelper.LiteralNull ) );
+                // <PublisherFieldName> = null;
+                yield return SyntaxHelper.NullAssignment ( PublisherFieldName );
 
                 yield break;
             }
@@ -269,14 +278,20 @@ namespace Test.DependencyInjection.FactProxy
                             SyntaxHelper.VariableDeclaration (
                                 methInfo.ReturnType, ReturnValueVariableName ) );
 
-            yield return SyntaxFactory.ExpressionStatement (
-                            SyntaxFactory.AssignmentExpression (
-                                SyntaxKind.SimpleAssignmentExpression,
-                                SyntaxFactory.IdentifierName ( ReturnValueVariableName ),
-                                SyntaxHelper.InvocationExpression (
-                                    methInfo.Name,
-                                    _Arguments (),
-                                    ProxiedObjectFieldName ) ) );
+            //yield return SyntaxFactory.ExpressionStatement (
+            //                SyntaxFactory.AssignmentExpression (
+            //                    SyntaxKind.SimpleAssignmentExpression,
+            //                    SyntaxFactory.IdentifierName ( ReturnValueVariableName ),
+            //                    SyntaxHelper.InvocationExpression (
+            //                        methInfo.Name,
+            //                        _Arguments (),
+            //                        ProxiedObjectFieldName ) ) );
+            // <ProxiedObjectFieldName>.<methInfo.Name> ( <Method Info Parameters> )
+            yield return SyntaxHelper.Assignment (
+                                ReturnValueVariableName,
+                                SyntaxHelper.MethodInvocation ( ProxiedObjectFieldName,
+                                                                methInfo.Name )
+                                    .AddArguments ( methInfo.GetParameters () ) );
 
 
             ObjectCreationExpressionSyntax factCreationStx;
@@ -297,7 +312,7 @@ namespace Test.DependencyInjection.FactProxy
                                 SyntaxFactory.BinaryExpression (
                                     SyntaxKind.NotEqualsExpression,
                                     SyntaxHelper.IdentifierName ( PublisherFieldName ),
-                                    SyntaxHelper.NullLiteralExpression ) ),
+                                    SyntaxHelper.LiteralNull ) ),
                             SyntaxFactory.ExpressionStatement (
                                 SyntaxFactory.InvocationExpression (
                                     SyntaxHelper.IdentifierName (
@@ -315,17 +330,23 @@ namespace Test.DependencyInjection.FactProxy
         {
             IEnumerable<StatementSyntax> _ClearFieldsAndReturn ()
             {
-                yield return SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.AssignmentExpression (
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    SyntaxFactory.IdentifierName ( DispatcherFieldName ),
-                                    SyntaxHelper.NullLiteralExpression ) );
+                //yield return SyntaxFactory.ExpressionStatement (
+                //                SyntaxFactory.AssignmentExpression (
+                //                    SyntaxKind.SimpleAssignmentExpression,
+                //                    SyntaxFactory.IdentifierName ( DispatcherFieldName ),
+                //                    SyntaxHelper.LiteralNull ) );
 
-                yield return SyntaxFactory.ExpressionStatement (
-                                SyntaxFactory.AssignmentExpression (
-                                    SyntaxKind.SimpleAssignmentExpression,
-                                    SyntaxFactory.IdentifierName ( PublisherFieldName ),
-                                    SyntaxHelper.NullLiteralExpression ) );
+                //yield return SyntaxFactory.ExpressionStatement (
+                //                SyntaxFactory.AssignmentExpression (
+                //                    SyntaxKind.SimpleAssignmentExpression,
+                //                    SyntaxFactory.IdentifierName ( PublisherFieldName ),
+                //                    SyntaxHelper.LiteralNull ) );
+
+                // <DispatcherFieldName> = null;
+                yield return SyntaxHelper.NullAssignment ( DispatcherFieldName );
+
+                // <PublisherFieldName> = null;
+                yield return SyntaxHelper.NullAssignment ( PublisherFieldName );
 
                 yield return SyntaxFactory.ReturnStatement ();
 
@@ -340,7 +361,7 @@ namespace Test.DependencyInjection.FactProxy
                             SyntaxFactory.BinaryExpression (
                                 SyntaxKind.EqualsExpression,
                                 SyntaxHelper.IdentifierName ( SpConstructorParameterName ),
-                                SyntaxHelper.NullLiteralExpression ),
+                                SyntaxHelper.LiteralNull ),
                             SyntaxFactory.Block ( _ClearFieldsAndReturn () ) );
 
             // __dispatcher = sp.GetService ( typeof ( IFactDispatcher ) ) as IFactDispatcher
@@ -383,7 +404,7 @@ namespace Test.DependencyInjection.FactProxy
                             SyntaxFactory.BinaryExpression (
                                 SyntaxKind.EqualsExpression,
                                 SyntaxHelper.IdentifierName ( DispatcherFieldName ),
-                                SyntaxHelper.NullLiteralExpression ),
+                                SyntaxHelper.LiteralNull ),
                             SyntaxFactory.ReturnStatement () );
 
             foreach ( String factVerb in ImplFactProviderVerbs )
